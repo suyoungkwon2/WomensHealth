@@ -1,0 +1,25 @@
+/* The stage is pinned (sticky) and pulled up by its own height, so the
+   following steps scroll over it in normal flow. */
+.section {
+  --stage-h: calc(100dvh - var(--header-h));
+  position: relative;
+}
+
+.stage {
+  position: sticky;
+  top: var(--header-h);
+  height: var(--stage-h);
+  margin-bottom: calc(-1 * var(--stage-h));
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Each step is one viewport tall; the overlay sits in the middle of it. */
+.step {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--gutter);
+}

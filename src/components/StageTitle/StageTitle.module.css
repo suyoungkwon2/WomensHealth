@@ -1,0 +1,9 @@
+.root {
+  position: absolute;
+  top: 24px;
+  inset-inline: var(--gutter);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-stage-title);
+}

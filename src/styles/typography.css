@@ -1,0 +1,62 @@
+/* ============================================================
+   Text system. Apply as class names (global, prefixed "t-"):
+     <h2 className="t-h1">…</h2>   <p className="t-body">…</p>
+   Serif (Zen Old Mincho) = headings. Sans (DM Sans) = everything else.
+   Colors are inherited; add color via tokens (e.g. style or your own class).
+   ============================================================ */
+.t-display,
+.t-h1,
+.t-h2 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: var(--ls-heading);
+}
+
+.t-display { font-size: var(--fs-display); line-height: var(--lh-tight); }
+.t-h1      { font-size: var(--fs-h1);      line-height: var(--lh-tight); }
+.t-h2      { font-size: var(--fs-h2);      line-height: var(--lh-heading); }
+
+.t-h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: var(--lh-heading);
+}
+
+.t-stage-title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-stage-title);
+  line-height: var(--lh-heading);
+  text-align: center;
+}
+
+.t-body-lg,
+.t-body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: var(--lh-body);
+}
+.t-body-lg { font-size: var(--fs-body-lg); }
+.t-body    { font-size: var(--fs-body); }
+
+.t-caption {
+  font-family: var(--font-sans);
+  font-size: var(--fs-caption);
+  line-height: 1.4;
+  color: var(--text-soft);
+}
+
+.t-label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+}
+
+.t-stat {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--fs-stat);
+  line-height: 1.1;
+}

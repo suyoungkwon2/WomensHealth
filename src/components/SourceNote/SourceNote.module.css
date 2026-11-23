@@ -1,0 +1,9 @@
+.root {
+  position: absolute;
+  inset: auto var(--gutter) 12px var(--gutter);
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  text-align: right;
+  font-size: var(--fs-small);
+  color: var(--text-soft);
+}

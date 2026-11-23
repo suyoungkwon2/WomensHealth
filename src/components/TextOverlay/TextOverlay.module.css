@@ -1,0 +1,70 @@
+.root {
+  width: min(var(--overlay-max), 100%);
+  margin-inline: auto;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: var(--fs-title);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body-overlay);
+  line-height: var(--lh-body);
+}
+
+.body p + p {
+  margin-top: 0;
+}
+
+/* Card variants */
+.dark,
+.light {
+  padding: clamp(24px, 3.3vw, 50px);
+  border-radius: var(--radius-card);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+}
+
+.dark {
+  background: rgba(67, 67, 67, 0.8);
+  color: #fff;
+}
+
+.light {
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--ink);
+}
+
+/* Veil: no box. A white layer fills the whole step (= the screen) and the
+   graphic shows through faintly, blurred. Needs a positioned ancestor to fill —
+   <ScrollyStep> provides it. */
+.veil {
+  width: 100%;
+  color: var(--ink);
+}
+
+.veil::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+
+.veil .copy {
+  width: min(659px, 100%);
+  margin-inline: auto;
+}
