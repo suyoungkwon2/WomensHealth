@@ -8,9 +8,14 @@ import {
   StageTitle,
   TextOverlay,
 } from "@/components";
-import { PlaceholderGraphic } from "./PlaceholderGraphic";
+import { FundingGraphic } from "./funding/FundingGraphic";
+import { FUNDING_SOURCE, FUNDING_STEPS } from "./funding/steps";
 
-/** Part: Funding. Owner edits ONLY this file (plus new files under src/parts/funding/). */
+/**
+ * Part: Funding. Owner edits ONLY this file (plus new files under src/parts/funding/).
+ *   - Story text → funding/steps.ts
+ *   - Graphics   → funding/FundingGraphic.tsx (one scene per step)
+ */
 export function FundingPart() {
   return (
     <ScrollySection id="funding" part>
@@ -18,26 +23,20 @@ export function FundingPart() {
         {(step) => (
           <>
             <StageTitle>Funding</StageTitle>
-            <PlaceholderGraphic step={step} tone="women" />
-            <SourceNote>Source: placeholder citation.</SourceNote>
+            <FundingGraphic scene={(FUNDING_STEPS[step] ?? FUNDING_STEPS[0]).scene} />
+            <SourceNote>{FUNDING_SOURCE}</SourceNote>
           </>
         )}
       </ScrollyStage>
-      <ScrollyStep>
-        <TextOverlay variant="dark" title="Funding — step 1">
-          <p>Placeholder copy. Replace with the real story text for this step.</p>
-        </TextOverlay>
-      </ScrollyStep>
-      <ScrollyStep>
-        <TextOverlay variant="light" title="Funding — step 2">
-          <p>The graphic behind this box changes as you scroll.</p>
-        </TextOverlay>
-      </ScrollyStep>
-      <ScrollyStep>
-        <TextOverlay variant="veil" title="Funding — step 3">
-          <p>Full-width veil variant.</p>
-        </TextOverlay>
-      </ScrollyStep>
+      {FUNDING_STEPS.map((s, i) => (
+        <ScrollyStep key={i}>
+          <TextOverlay variant={s.variant} title={s.title}>
+            {s.body.map((p, j) => (
+              <p key={j}>{p}</p>
+            ))}
+          </TextOverlay>
+        </ScrollyStep>
+      ))}
     </ScrollySection>
   );
 }

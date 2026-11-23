@@ -1,0 +1,35 @@
+/* Graphic area between the StageTitle (top) and SourceNote (bottom). */
+.root {
+  position: absolute;
+  inset: calc(var(--header-h) + 56px) var(--gutter) 64px;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.scene[data-active] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.placeholder {
+  width: min(100%, 960px);
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border: 1.2px dashed var(--gray-400);
+  color: var(--text-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene {
+    transition: none;
+  }
+}
