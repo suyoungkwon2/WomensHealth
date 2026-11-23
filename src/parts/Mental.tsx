@@ -17,7 +17,7 @@ export function MentalPart() {
       <ScrollyStage>
         {(step) => (
           <>
-            <StageTitle>Mental</StageTitle>
+            <StageTitle>Doris</StageTitle>
             <PlaceholderGraphic step={step} tone="men" />
             <SourceNote>Source: placeholder citation.</SourceNote>
           </>
