@@ -1,9 +1,8 @@
 name: ci
 
 on:
-  pull_request:
   push:
-    branches: [main]
+    branches: ["**"]   # every push to every branch (including main)
 
 concurrency:
   group: ci-${{ github.ref }}
