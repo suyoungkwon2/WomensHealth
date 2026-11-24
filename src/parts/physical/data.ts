@@ -24,7 +24,7 @@ export const IDENTIFIED = {
   men: { before: 2904, after: 3018 },
 };
 
-/** One entry per scroll step, in order. `title` is optional (pages 1–3 and 11 have none). */
+/** One entry per scroll step, in order. `title` is optional. Step indexes are named in PhysicalStage.tsx (`S`). */
 export const STEPS: { title?: string; body: string; variant: "dark" | "light"; source?: string }[] = [
   {
     variant: "dark",
@@ -32,8 +32,17 @@ export const STEPS: { title?: string; body: string; variant: "dark" | "light"; s
   },
   {
     variant: "dark",
-    body: "The blood test measures troponin, a marker of heart damage. The man gets emergency treatment. The woman is sent home.",
+    body: "The blood test measures troponin, a marker of heart damage.",
     source: "Illustrative numbers: man 45 ng/L, woman 25 ng/L.",
+  },
+  {
+    variant: "dark",
+    body: "The cutoff for diagnosing a heart attack is 40 ng/L. Because his level was above it, the man was judged a high-risk patient.",
+    source: "Single diagnostic threshold of 40 ng/L for both sexes. Lee et al., JACC, 2019.",
+  },
+  {
+    variant: "dark",
+    body: "The man gets emergency treatment. The woman is sent home.",
   },
   {
     variant: "dark",

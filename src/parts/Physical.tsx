@@ -15,7 +15,7 @@ export function PhysicalPart() {
       <ScrollyStage>{(step) => <PhysicalStage step={step} />}</ScrollyStage>
       {STEPS.map((s, i) => (
         <ScrollyStep key={i} className={styles.step}>
-          <div className={styles.card}>
+          <div className={i === 0 ? `${styles.card} ${styles.introCard}` : styles.card}>
             <TextOverlay variant={s.variant} title={s.title}>
               <p>{s.body}</p>
             </TextOverlay>

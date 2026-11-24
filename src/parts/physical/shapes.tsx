@@ -22,6 +22,8 @@ export function Actor({
   scale = 1,
   opacity = 1,
   grayscale = false,
+  delay = 0,
+  fadeDelay = 0,
   children,
 }: {
   x?: number;
@@ -29,6 +31,10 @@ export function Actor({
   scale?: number;
   opacity?: number;
   grayscale?: boolean;
+  /** Seconds to wait before moving (used to stagger the intro). */
+  delay?: number;
+  /** Seconds to wait before fading (opacity changes). */
+  fadeDelay?: number;
   children: ReactNode;
 }) {
   return (
@@ -38,6 +44,7 @@ export function Actor({
         transform: `translate(${x}px, ${y}px) scale(${scale})`,
         opacity,
         filter: grayscale ? "grayscale(1)" : undefined,
+        transitionDelay: delay || fadeDelay ? `${delay}s, ${fadeDelay}s, 0s` : undefined,
         pointerEvents: "none",
       }}
     >
@@ -110,12 +117,31 @@ export function Meter({ value, color, label }: { value: number; color: string; l
   );
 }
 
-/** Door standing on the floor line `floorY`. */
-export function Door({ x, floorY, label, active = true }: { x: number; floorY: number; label: string; active?: boolean }) {
+/** Door standing on the floor line `floorY`. `hospital` adds a red cross sign (the treatment room). */
+export function Door({
+  x,
+  floorY,
+  label,
+  active = true,
+  hospital = false,
+}: {
+  x: number;
+  floorY: number;
+  label: string;
+  active?: boolean;
+  hospital?: boolean;
+}) {
   return (
     <g transform={`translate(${x} ${floorY - 210})`} opacity={active ? 1 : 0.35}>
       <rect x={-45} y={0} width={90} height={210} rx={4} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={1.5} />
-      <circle cx={25} cy={110} r={5} fill="var(--ink)" />
+      <circle cx={25} cy={120} r={5} fill="var(--ink)" />
+      {hospital && (
+        <g transform="translate(0 52)">
+          <rect x={-24} y={-24} width={48} height={48} rx={8} fill="#c4161c" />
+          <rect x={-5} y={-16} width={10} height={32} fill="#fff" />
+          <rect x={-16} y={-5} width={32} height={10} fill="#fff" />
+        </g>
+      )}
       <text x={0} y={-20} fontSize={15} letterSpacing={1.5} textAnchor="middle" fill="var(--ink)" style={sans}>
         {label}
       </text>
@@ -123,12 +149,66 @@ export function Door({ x, floorY, label, active = true }: { x: number; floorY: n
   );
 }
 
-export function TestTube({ x, y }: { x: number; y: number }) {
+const TUBE_BODY = "M-20 14H20V128A20 20 0 0 1 -20 128Z";
+const TUBE_BLOOD = "M-20 24H20V128A20 20 0 0 1 -20 128Z";
+const BAR = { top: 54, bottom: 110 }; // sticker bar track (local units), 0–60 ng/L
+const BAR_K = (BAR.bottom - BAR.top) / 60;
+
+/**
+ * Blood test tube with a sticker. Local units: tube is 44 wide, 148 tall, centered on x = 0, top at y = 0.
+ * The sticker shows the troponin value as a bar graph plus number and unit.
+ * `showContent` fades the sticker text in; `animate` makes the bar grow (use right after the tube enlarges).
+ */
+export function StickerTube({
+  value,
+  color,
+  showContent,
+  animate,
+}: {
+  value: number;
+  color: string;
+  showContent: boolean;
+  animate: boolean;
+}) {
+  const h = value * BAR_K;
   return (
-    <g transform={`translate(${x} ${y})`}>
-      <rect x={-12} y={-6} width={24} height={10} rx={3} fill="var(--gray-600)" />
-      <path d="M-11 4h22v58a11 11 0 0 1-22 0z" fill="#fff" stroke="var(--ink)" strokeWidth={1.5} />
-      <path d="M-11 30h22v32a11 11 0 0 1-22 0z" fill="#c4161c" />
+    <g>
+      <rect x={-22} y={0} width={44} height={14} rx={3} fill="var(--gray-600)" />
+      <path d={TUBE_BODY} fill="#fff" />
+      <path d={TUBE_BLOOD} fill="#c4161c" />
+      <path d={TUBE_BODY} fill="none" stroke="var(--ink)" strokeWidth={1.4} />
+      <rect x={-21} y={34} width={42} height={84} rx={2.5} fill="#fff" stroke="var(--ink)" strokeWidth={1} />
+      <g style={{ opacity: showContent ? 1 : 0, transition: "opacity 0.4s" }}>
+        <g className={animate ? styles.late : undefined}>
+          <g transform="translate(-14 46)" style={{ color: "var(--ink)" }}>
+            <Heart size={7} />
+          </g>
+          <text x={-9} y={48.2} fontSize={5} letterSpacing={0.5} fill="var(--text-soft)" style={sans}>
+            TROPONIN
+          </text>
+          {[0, 20, 40, 60].map((t) => (
+            <line key={t} x1={-3} x2={-0.5} y1={BAR.bottom - t * BAR_K} y2={BAR.bottom - t * BAR_K} stroke="var(--text-soft)" strokeWidth={0.5} />
+          ))}
+          <text x={1.5} y={89} fontSize={13} fontWeight={700} fill="var(--ink)" style={sans}>
+            {value}
+          </text>
+          <text x={2} y={98} fontSize={5.5} fill="var(--text-soft)" style={sans}>
+            ng/L
+          </text>
+        </g>
+        <rect x={-15} y={BAR.top} width={12} height={BAR.bottom - BAR.top} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={0.6} />
+        <rect
+          x={-15}
+          y={BAR.bottom - h}
+          width={12}
+          height={h}
+          fill={color}
+          stroke="var(--ink)"
+          strokeWidth={0.6}
+          className={animate ? styles.grow : undefined}
+          style={{ animationDelay: "1s" }}
+        />
+      </g>
     </g>
   );
 }

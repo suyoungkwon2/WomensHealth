@@ -1,7 +1,10 @@
 /* ---------- steps: text card position ---------- */
 /* The graphic is the full-screen background; the card sits over its lower part,
    above the source line. */
-.step {
+/* Doubled selector so it wins over the shared Scrolly step (min-height: 100dvh): a step is
+   exactly as tall as the stage (viewport minus header), so the card sits at the same place on every step. */
+.step.step {
+  min-height: calc(100dvh - var(--header-h));
   justify-content: center;
   align-items: flex-end;
   padding-bottom: 68px;
@@ -9,6 +12,16 @@
 
 .card {
   width: min(900px, 100%);
+}
+
+/* First screen: the card rises in after the characters have arrived. */
+.introCard {
+  animation: cardIn 0.9s 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(70px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ---------- stage ---------- */
@@ -20,7 +33,7 @@
 
 .actor {
   transition:
-    transform 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 1.1s cubic-bezier(0.25, 0.8, 0.3, 1),
     opacity 0.6s ease,
     filter 0.6s ease;
 }
@@ -42,6 +55,11 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* Sticker text appears after the tube has been enlarged. */
+.late {
+  animation: fadeIn 0.6s 1s ease both;
 }
 
 .leak {
@@ -83,7 +101,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .beat1, .beat2, .beat3, .leak, .rise, .grow, .pulse {
+  .beat1, .beat2, .beat3, .late, .leak, .rise, .grow, .pulse, .introCard {
     animation: none;
   }
   .actor, .person {
