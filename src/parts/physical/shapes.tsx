@@ -246,10 +246,13 @@ export function QuestionMark({ x, y, size = 220 }: { x: number; y: number; size?
 
 /** Hospital wristband name tag, 80 × 60 (plus a 9-unit strap tab on top), top-left at (0, 0) of its own space. */
 export const TAG = { w: 80, h: 60 };
+/** Outlines keep a constant screen width however small the tag is scaled. */
+const NS = { vectorEffect: "non-scaling-stroke" } as const;
 
 /**
  * One tag, top-left at (x, y). The frame color carries the group; the label is simplified:
- * a person icon, two text lines and a barcode.
+ * a person icon, two text lines and a barcode. `flat` fades the details out and fills the whole tag
+ * with the group color (used for the bars of the trend chart).
  */
 export function NameTag({
   x,
@@ -257,6 +260,8 @@ export function NameTag({
   fill,
   gathered = true,
   scatter,
+  simple = false,
+  flat = false,
 }: {
   x: number;
   y: number;
@@ -264,8 +269,13 @@ export function NameTag({
   /** false: the tag waits far away (scatter offset); true: it flies to its place. */
   gathered?: boolean;
   scatter?: { dx: number; dy: number; rot: number; delay: number };
+  /** Never draw the details (cheaper; always flat). */
+  simple?: boolean;
+  /** Details fade out and the tag is filled with `fill`. */
+  flat?: boolean;
 }) {
   const away = scatter && !gathered;
+  const solid = flat || simple;
   return (
     <g transform={`translate(${x} ${y})`}>
       <g
@@ -277,13 +287,37 @@ export function NameTag({
           } as CSSProperties
         }
       >
-      {/* strap tab with a slot */}
-      <rect x={28} y={-9} width={24} height={14} rx={5} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
-      <rect x={34} y={-5} width={12} height={4} rx={2} className={styles.person} style={{ fill }} />
-      {/* white plastic body, colored frame, white label */}
-      <rect x={0} y={0} width={TAG.w} height={TAG.h} rx={11} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
-      <rect x={5} y={5} width={TAG.w - 10} height={TAG.h - 10} rx={7} className={styles.person} style={{ fill }} stroke="var(--ink)" strokeWidth={1} />
-      <rect x={10} y={10} width={TAG.w - 20} height={TAG.h - 20} rx={3.5} fill="#fff" />
+        {/* white plastic body, colored frame, white label (all take the group color when flat) */}
+        <rect x={0} y={0} width={TAG.w} height={TAG.h} rx={11} className={styles.person} style={{ fill: solid ? fill : "#fff" }} stroke="var(--ink)" strokeWidth={1} {...NS} />
+        <rect
+          x={5}
+          y={5}
+          width={TAG.w - 10}
+          height={TAG.h - 10}
+          rx={7}
+          className={styles.person}
+          style={{ fill, strokeOpacity: solid ? 0 : 1 }}
+          stroke="var(--ink)"
+          strokeWidth={0.6}
+          {...NS}
+        />
+        <rect x={10} y={10} width={TAG.w - 20} height={TAG.h - 20} rx={3.5} className={styles.person} style={{ fill: solid ? fill : "#fff" }} />
+        {!simple && (
+          <g className={styles.details} style={{ opacity: flat ? 0 : 1 }}>
+            {/* strap tab with a slot */}
+            <rect x={28} y={-9} width={24} height={14} rx={5} fill="#fff" stroke="var(--ink)" strokeWidth={1} {...NS} />
+            <rect x={34} y={-5} width={12} height={4} rx={2} className={styles.person} style={{ fill }} />
+            <TagLabel />
+          </g>
+        )}
+      </g>
+    </g>
+  );
+}
+
+function TagLabel() {
+  return (
+    <>
       {/* person icon */}
       <g fill="var(--gray-600)">
         <circle cx={22} cy={19} r={5} />
@@ -294,7 +328,6 @@ export function NameTag({
       {Array.from({ length: 15 }, (_, i) => (
         <line key={i} x1={13 + i * 3.6} x2={13 + i * 3.6} y1={36} y2={47} stroke="var(--ink)" strokeWidth={i % 3 === 0 ? 2 : 1} />
       ))}
-      </g>
-    </g>
+    </>
   );
 }

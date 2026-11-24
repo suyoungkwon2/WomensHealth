@@ -23,12 +23,16 @@
 .cardLeft {
   width: min(810px, 100%);
 }
+.cardLeftNarrow {
+  width: min(560px, 100%);
+}
 @media (max-width: 700px) {
   .stepLeft.stepLeft {
     align-items: flex-end;
     padding-bottom: 68px;
   }
-  .cardLeft {
+  .cardLeft,
+  .cardLeftNarrow {
     width: 100%;
   }
 }
@@ -59,6 +63,18 @@
 
 .person {
   transition: fill 0.8s ease;
+}
+
+/* Tag details (strap, person, lines, barcode) fade out when the tags are filled with color. */
+.details {
+  transition: opacity 0.6s ease;
+}
+
+/* A name tag moving between the grid and its bar (delay set inline). */
+.place {
+  transition:
+    transform 1.3s cubic-bezier(0.25, 0.8, 0.3, 1) var(--pd, 0s),
+    opacity 0.6s ease var(--pd, 0s);
 }
 
 /* Name tags gather from all sides (delay is random per tag, set inline). */
@@ -178,7 +194,7 @@
     stroke-dasharray: none;
     stroke-dashoffset: 0;
   }
-  .actor, .person, .tag {
+  .actor, .person, .tag, .place, .details {
     transition: none;
   }
 }

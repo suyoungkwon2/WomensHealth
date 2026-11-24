@@ -26,8 +26,8 @@ export function PhysicalPart() {
     <ScrollySection id="physical" part>
       <ScrollyStage>{(step) => <PhysicalStage step={step} colorReady={colorReady} />}</ScrollyStage>
       {STEPS.map((s, i) => (
-        <ScrollyStep key={i} className={s.layout === "left" ? `${styles.step} ${styles.stepLeft}` : styles.step}>
-          <div ref={i === COLOR_STEP ? colorCard : undefined} className={i === 0 ? `${styles.card} ${styles.introCard}` : s.layout === "left" ? styles.cardLeft : styles.card}>
+        <ScrollyStep key={i} className={s.layout ? `${styles.step} ${styles.stepLeft}` : styles.step}>
+          <div ref={i === COLOR_STEP ? colorCard : undefined} className={i === 0 ? `${styles.card} ${styles.introCard}` : s.layout === "left" ? styles.cardLeft : s.layout === "leftNarrow" ? styles.cardLeftNarrow : styles.card}>
             <TextOverlay variant={s.variant} title={s.title}>
               <p>{s.body}</p>
             </TextOverlay>

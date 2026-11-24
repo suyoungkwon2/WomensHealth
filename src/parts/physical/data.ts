@@ -25,7 +25,7 @@ export const IDENTIFIED = {
 };
 
 /** One entry per scroll step, in order. `title` is optional. Step indexes are named in PhysicalStage.tsx (`S`). */
-export const STEPS: { title?: string; body: string; variant: "dark" | "light"; source?: string; layout?: "left" }[] = [
+export const STEPS: { title?: string; body: string; variant: "dark" | "light"; source?: string; layout?: "left" | "leftNarrow" }[] = [
   {
     variant: "dark",
     body: "A man and a woman arrive at the emergency room with the same heart attack symptoms. Both get the same blood test.",

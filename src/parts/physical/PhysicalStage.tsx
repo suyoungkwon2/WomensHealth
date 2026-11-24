@@ -54,10 +54,53 @@ TUBE6.barTop = TUBE6.y + 54 * TUBE6.k; // sticker bar track top (60 ng/L)
 TUBE6.barBottom = TUBE6.y + 110 * TUBE6.k; // bottom (0 ng/L)
 TUBE6.cutY = TUBE6.y + (110 - 40 * ((110 - 54) / 60)) * TUBE6.k; // 40 ng/L
 
-// 100 name tags on a flat grid with a small gap between them. The grid is drawn at GRID_K of its natural size.
-const PITCH = { x: 90, y: 78 };
-const GRID_K = 0.55;
+// 100 name tags on a flat grid with a small gap between them, drawn big across the stage.
+// The text card covers the middle of the screen, so the bottom two rows (women) stay below it.
+const PITCH = { x: 88, y: 66 };
+const GRID_K = 0.9;
+const GRID_Y = 205;
 const GRID_W = (9 * PITCH.x + TAG.w) * GRID_K;
+
+const T_EXTRA = 2.6; // seconds until the other bars start (after bar 1 is filled with color)
+
+// Trend chart (step 9): each bar is 20 name tags, 2 wide and 10 tall (1 tag = 5%): women at the bottom, men on top.
+const BARS = { x0: 0, step: 130, base: 750, k: 0.6, col: 54, row: 52 };
+const BAR_W = BARS.col + BARS.k * TAG.w;
+const LABEL_W = 147; // reference-line label on the right of the chart
+// Center the whole chart (axis labels, bars, right label) on the stage.
+BARS.x0 = Math.round(CX - (7 * BARS.step + BAR_W + 25 + LABEL_W - 70) / 2);
+const BAR_TAGS = TRIAL_SHARES.map((d) => Math.round(d.value / 5)); // women tags per bar (nearest 5%)
+const PCT_PX = (BARS.row * 10) / 100; // 10 rows = 100%
+/** Phones: the chart is squeezed horizontally toward the center so it fits the cropped view. */
+const narrowX = (x: number, narrow: boolean) => (narrow ? CX + (x - CX) * 0.88 : x);
+
+/**
+ * All name tags with their grid place and (for step 9) their bar place. The two left columns of the grid
+ * (4 women at the bottom, 16 men above) become the first bar; the other 80 grid tags fade out.
+ */
+const PLACED_TAGS = (() => {
+  const GX = CX - GRID_W / 2;
+  const barPos = (b: number, j: number) => ({
+    x: BARS.x0 + b * BARS.step + (j % 2) * BARS.col,
+    y: BARS.base - Math.floor(j / 2) * BARS.row - TAG.h * BARS.k - 3,
+    k: BARS.k,
+  });
+  type Pos = { x: number; y: number; k: number };
+  const list: { key: string; i: number; extra: boolean; women: boolean; keep: boolean; grid: Pos; bar: Pos; delay: number }[] = [];
+  for (let i = 0; i < 100; i++) {
+    const keep = i % 10 < 2;
+    const j = (9 - Math.floor(i / 10)) * 2 + (i % 10); // bottom grid row → bottom of the bar
+    const grid = { x: GX + (i % 10) * PITCH.x * GRID_K, y: GRID_Y + (Math.floor(i / 10) * PITCH.y + 10) * GRID_K, k: GRID_K };
+    list.push({ key: `g${i}`, i, extra: false, women: i >= 80, keep, grid, bar: keep ? barPos(0, j) : grid, delay: keep ? 0.15 + Math.floor(j / 2) * 0.06 : 0 });
+  }
+  for (let b = 1; b < BAR_TAGS.length; b++) {
+    for (let j = 0; j < 20; j++) {
+      const p = barPos(b, j);
+      list.push({ key: `b${b}-${j}`, i: -1, extra: true, women: j < BAR_TAGS[b], keep: true, grid: p, bar: p, delay: T_EXTRA + b * 0.55 + Math.floor(j / 2) * 0.06 });
+    }
+  }
+  return list;
+})();
 
 const inSteps = (step: number, list: number[]) => list.includes(step);
 const fade = (on: boolean, delay = 0): React.CSSProperties => ({
@@ -160,9 +203,21 @@ export function PhysicalStage({ step, colorReady = true }: { step: number; color
   const showFloor = inSteps(step, [S.ARRIVE, S.DOORS, S.OUTCOME, S.WHY, S.REWIND]);
   const showCards = step === S.REWIND;
   const on6 = step === S.METERS;
-  const showGrid = inSteps(step, [S.GRID_GRAY, S.GRID_COLOR, S.TREND]);
-  const smallGrid = step === S.TREND;
+  const tagLayerOpacity = inSteps(step, [S.GRID_GRAY, S.GRID_COLOR, S.TREND]) ? 1 : step === S.RECAP ? 0.12 : 0;
   const gridGathered = step >= S.GRID_GRAY;
+  // Bar 1 is first drawn with the tag details; after it has formed, the details fade and the tags fill with color.
+  const [flatDone, setFlatDone] = useState(false);
+  useEffect(() => {
+    if (step === S.TREND) {
+      const t = setTimeout(() => setFlatDone(true), 1800);
+      return () => clearTimeout(t);
+    }
+    if (step < S.TREND) {
+      const t = setTimeout(() => setFlatDone(false), 800);
+      return () => clearTimeout(t);
+    }
+  }, [step]);
+  const flat = step > S.TREND || (step === S.TREND && flatDone);
   const colored = step > S.GRID_COLOR || (step === S.GRID_COLOR && colorReady);
   const tubesBig = step !== S.ARRIVE;
   const tubesOn = step === S.ARRIVE ? intro : inSteps(step, [S.TUBE, S.CUTOFF]);
@@ -389,39 +444,48 @@ export function PhysicalStage({ step, colorReady = true }: { step: number; color
         </g>
 
         {/* ---------- steps 8–10: the 100 participants ---------- */}
-        <Actor x={smallGrid ? 270 : CX - GRID_W / 2} y={smallGrid ? 230 : 80} scale={smallGrid ? 0.42 * GRID_K : GRID_K} opacity={showGrid ? 1 : 0}>
-          {Array.from({ length: 100 }, (_, i) => {
-            const isWoman = i < 20; // top two rows: exactly 20 of 100
-            const fill = !colored ? "var(--gray-400)" : isWoman ? WOMEN : MEN;
-            // +10 leaves room for the strap tab above the first row
-            return <NameTag key={i} x={(i % 10) * PITCH.x} y={Math.floor(i / 10) * PITCH.y + 10} fill={fill} gathered={gridGathered} scatter={TAG_SCATTER[i]} />;
+        <g style={{ opacity: tagLayerOpacity, transition: "opacity 0.6s" }}>
+          {PLACED_TAGS.map((t) => {
+            const isBar = step >= S.TREND;
+            const pos = isBar ? t.bar : t.grid;
+            const visible = t.extra ? isBar : !isBar || t.keep;
+            const dropped = t.extra && !isBar; // extra bar tags wait above their place and drop in
+            const fill = !colored ? "var(--gray-400)" : t.women ? WOMEN : MEN;
+            return (
+              <g
+                key={t.key}
+                className={styles.place}
+                style={
+                  {
+                    transform: `translate(${isBar ? narrowX(pos.x, narrow) : pos.x}px, ${pos.y + (dropped ? -70 : 0)}px) scale(${pos.k})`,
+                    opacity: visible ? 1 : 0,
+                    "--pd": `${isBar ? t.delay : 0}s`,
+                  } as React.CSSProperties
+                }
+              >
+                <NameTag x={0} y={0} fill={fill} gathered={gridGathered} scatter={t.extra ? undefined : TAG_SCATTER[t.i]} simple={t.extra} flat={flat} />
+              </g>
+            );
           })}
-        </Actor>
+        </g>
+        {/* captions above the grid (the text card covers the middle of the screen) */}
         <g style={fade(step === S.GRID_GRAY)}>
-          <text x={CX} y={538} fontSize={20} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
+          <text x={CX} y={118} fontSize={22} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
             1986–1990 · 32 major cardiovascular trials
           </text>
-          <text x={CX} y={566} fontSize={17} textAnchor="middle" fill="var(--text-soft)" style={sans}>
-            Each icon = 1 of 100 participants in an average trial
+          <text x={CX} y={148} fontSize={17} textAnchor="middle" fill="var(--text-soft)" style={sans}>
+            Each name tag = 1 of 100 participants in an average trial
           </text>
         </g>
         <g style={fade(step === S.GRID_COLOR && colorReady, 0.3)}>
-          <text x={CX} y={555} fontSize={34} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
+          <text x={CX} y={140} fontSize={36} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
             <tspan fill={WOMEN}>20 women</tspan> : <tspan fill={MEN}>80 men</tspan>
-          </text>
-        </g>
-        <g style={fade(step === S.TREND, 0.4)}>
-          <text x={380} y={445} fontSize={15} textAnchor="middle" fill="var(--text-soft)" style={sans}>
-            1986–90 average trial
-          </text>
-          <text x={380} y={467} fontSize={15} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
-            20 women : 80 men
           </text>
         </g>
 
         {/* ---------- steps 10–11: women’s share over eight periods ---------- */}
         <Actor opacity={step === S.TREND ? 1 : step === S.RECAP ? 0.12 : 0}>
-          <TrialChart animate={step === S.TREND} />
+          <TrialChart animate={step === S.TREND} narrow={narrow} />
         </Actor>
 
         {/* ---------- step 12: before / after sex-specific thresholds ---------- */}
@@ -455,56 +519,63 @@ function Badge({ x, y, text, solid, width = 124 }: { x: number; y: number; text:
   );
 }
 
-const CH = { x0: 640, base: 520, barW: 58, step: 84, k: 7.2 }; // k = px per percentage point (0–50%)
-const CH_RIGHT = CH.x0 + 7 * CH.step + CH.barW + 20;
+const CH_LEFT = BARS.x0 - 30;
+const CH_RIGHT = BARS.x0 + 7 * BARS.step + BAR_W + 25;
+const CH_MID = (CH_LEFT + CH_RIGHT) / 2;
 
-function TrialChart({ animate }: { animate: boolean }) {
-  const ticks = [0, 10, 20, 30, 40, 50];
-  const refY = CH.base - DISEASE_BURDEN_SHARE_WOMEN * CH.k;
+/** Axis, labels and reference line of the trend chart. The bars themselves are the name tags. */
+function TrialChart({ animate, narrow }: { animate: boolean; narrow: boolean }) {
+  const ticks = [0, 20, 40, 60, 80, 100];
+  const refY = BARS.base - DISEASE_BURDEN_SHARE_WOMEN * PCT_PX;
+  const mx = (x: number) => narrowX(x, narrow);
+  const late = (d: number): React.CSSProperties => ({ opacity: animate ? 1 : 0, transition: `opacity 0.6s ${animate ? d : 0}s` });
+  const top = BARS.base - 10 * BARS.row;
   return (
     <g>
       {ticks.map((t) => (
         <g key={t}>
-          <line x1={CH.x0 - 15} x2={CH_RIGHT} y1={CH.base - t * CH.k} y2={CH.base - t * CH.k} stroke={t === 0 ? "var(--ink)" : "var(--gray-200)"} strokeWidth={t === 0 ? SW : 1} />
-          <text x={CH.x0 - 24} y={CH.base - t * CH.k + 5} fontSize={15} textAnchor="end" fill="var(--text-soft)" style={sans}>
+          <line x1={mx(CH_LEFT)} x2={mx(CH_RIGHT)} y1={BARS.base - t * PCT_PX} y2={BARS.base - t * PCT_PX} stroke={t === 0 ? "var(--ink)" : "var(--gray-200)"} strokeWidth={t === 0 ? SW : 1} />
+          <text x={mx(CH_LEFT) - 9} y={BARS.base - t * PCT_PX + 5} fontSize={15} textAnchor="end" fill="var(--text-soft)" style={sans}>
             {t}%
           </text>
         </g>
       ))}
       {TRIAL_SHARES.map((d, i) => {
-        const x = CH.x0 + i * CH.step;
-        const h = d.value * CH.k;
+        const mid = mx(BARS.x0 + i * BARS.step + BAR_W / 2);
+        const tBar = i === 0 ? 0.6 : T_EXTRA + i * 0.55;
         return (
           <g key={d.period}>
-            <rect
-              x={x}
-              y={CH.base - h}
-              width={CH.barW}
-              height={h}
-              fill={WOMEN}
-              stroke="var(--ink)"
-              strokeWidth={SW}
-              className={animate ? styles.grow : undefined}
-              style={{ animationDelay: `${0.5 + i * 0.25}s` }}
-            />
-            <text x={x + CH.barW / 2} y={CH.base - h - 8} fontSize={16} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
-              {d.value.toFixed(1)}
-            </text>
-            <text x={x + CH.barW / 2} y={CH.base + 24} fontSize={14} textAnchor="middle" fill="var(--ink)" style={sans}>
+            <text x={mid} y={BARS.base + 24} fontSize={14} textAnchor="middle" fill="var(--ink)" style={{ ...sans, ...late(tBar) }}>
               {d.period}
+            </text>
+            <text x={mid} y={BARS.base + 46} fontSize={16} fontWeight={700} textAnchor="middle" fill={WOMEN} style={{ ...sans, ...late(i === 0 ? 1.9 : tBar + 0.6) }}>
+              {d.value.toFixed(1)}%
             </text>
           </g>
         );
       })}
-      <line x1={CH.x0 - 5} x2={CH_RIGHT} y1={refY} y2={refY} stroke={WOMEN} strokeWidth={SW} strokeDasharray="8 6" />
-      <text x={CH_RIGHT} y={refY - 10} fontSize={15} textAnchor="end" fill="var(--ink)" style={sans}>
-        <tspan fontWeight={700} fill={WOMEN}>
-          {DISEASE_BURDEN_SHARE_WOMEN}%
-        </tspan>{" "}
-        Women’s share of cardiovascular disease burden
+      <g style={late(T_EXTRA + 7 * 0.55 + 1.2)}>
+        <line x1={mx(CH_LEFT)} x2={mx(CH_RIGHT)} y1={refY} y2={refY} stroke={WOMEN} strokeWidth={SW} strokeDasharray="8 6" />
+        <text x={mx(CH_RIGHT) + 12} y={refY - 28} fontSize={15} fill="var(--ink)" style={sans}>
+          <tspan x={mx(CH_RIGHT) + 12} fontWeight={700} fontSize={20} fill={WOMEN}>
+            {DISEASE_BURDEN_SHARE_WOMEN}%
+          </tspan>
+          <tspan x={mx(CH_RIGHT) + 12} dy={20}>
+            Women’s share of
+          </tspan>
+          <tspan x={mx(CH_RIGHT) + 12} dy={18}>
+            cardiovascular
+          </tspan>
+          <tspan x={mx(CH_RIGHT) + 12} dy={18}>
+            disease burden
+          </tspan>
+        </text>
+      </g>
+      <text x={mx(CH_MID)} y={top - 62} fontSize={20} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={{ ...sans, ...late(0.4) }}>
+        Share of participants in the average trial, by sex
       </text>
-      <text x={CX} y={110} fontSize={20} fontWeight={700} textAnchor="middle" fill="var(--ink)" opacity={animate ? 1 : 0} style={sans}>
-        Women’s share of participants, average trial
+      <text x={mx(CH_MID)} y={top - 38} fontSize={15} textAnchor="middle" fill="var(--text-soft)" style={{ ...sans, ...late(0.4) }}>
+        Each name tag = 5% of participants (rounded to the nearest tag)
       </text>
     </g>
   );
