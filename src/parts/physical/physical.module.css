@@ -89,6 +89,13 @@
   to   { transform: scaleY(1); }
 }
 
+/* The white cloth wipes up from the bottom, after the woman has appeared. */
+.cloth {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: rise 2.4s 3s ease-in-out both;
+}
+
 .pulse {
   transform-box: fill-box;
   transform-origin: center;
@@ -101,7 +108,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .beat1, .beat2, .beat3, .late, .leak, .rise, .grow, .pulse, .introCard {
+  .beat1, .beat2, .beat3, .late, .leak, .rise, .grow, .cloth, .pulse, .introCard {
     animation: none;
   }
   .actor, .person {

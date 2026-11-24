@@ -1,6 +1,6 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="839" height="165" viewBox="0 0 839 165" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Hands">
-<path id="Left hand" d="M82.5 161.5C126.13 161.5 161.5 126.13 161.5 82.5C161.5 38.8695 126.13 3.5 82.5 3.5C38.8695 3.5 3.5 38.8695 3.5 82.5C3.5 126.13 38.8695 161.5 82.5 161.5Z" fill="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
-<path id="Right hand" d="M756.5 161.5C800.13 161.5 835.5 126.13 835.5 82.5C835.5 38.8695 800.13 3.5 756.5 3.5C712.87 3.5 677.5 38.8695 677.5 82.5C677.5 126.13 712.87 161.5 756.5 161.5Z" fill="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Left hand" d="M82.5 161.5C126.13 161.5 161.5 126.13 161.5 82.5C161.5 38.8695 126.13 3.5 82.5 3.5C38.8695 3.5 3.5 38.8695 3.5 82.5C3.5 126.13 38.8695 161.5 82.5 161.5Z" fill="white" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
+<path id="Right hand" d="M756.5 161.5C800.13 161.5 835.5 126.13 835.5 82.5C835.5 38.8695 800.13 3.5 756.5 3.5C712.87 3.5 677.5 38.8695 677.5 82.5C677.5 126.13 712.87 161.5 756.5 161.5Z" fill="white" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
 </g>
 </svg>

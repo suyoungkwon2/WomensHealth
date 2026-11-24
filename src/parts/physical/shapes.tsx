@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import styles from "./physical.module.css";
 
+/** Outline width for every shape, in drawing units (the 1600 × 900 stage). Always black (`--ink`). */
+export const SW = 2;
 export const WOMEN = "var(--women)";
 export const MEN = "var(--men)";
 const sans: CSSProperties = { fontFamily: "var(--font-sans)" };
@@ -20,6 +22,8 @@ export function Actor({
   x = 0,
   y = 0,
   scale = 1,
+  rotate = 0,
+  slow = false,
   opacity = 1,
   grayscale = false,
   delay = 0,
@@ -29,6 +33,10 @@ export function Actor({
   x?: number;
   y?: number;
   scale?: number;
+  /** Degrees, around the group origin (the feet for characters). */
+  rotate?: number;
+  /** Slow, gentle entrance (used by the “recovered / did not recover” scene). */
+  slow?: boolean;
   opacity?: number;
   grayscale?: boolean;
   /** Seconds to wait before moving (used to stagger the intro). */
@@ -41,7 +49,8 @@ export function Actor({
     <g
       className={styles.actor}
       style={{
-        transform: `translate(${x}px, ${y}px) scale(${scale})`,
+        transform: `translate(${x}px, ${y}px) scale(${scale}) rotate(${rotate}deg)`,
+        transitionDuration: slow ? "2.4s, 1.8s, 0.6s" : undefined,
         opacity,
         filter: grayscale ? "grayscale(1)" : undefined,
         transitionDelay: delay || fadeDelay ? `${delay}s, ${fadeDelay}s, 0s` : undefined,
@@ -57,7 +66,7 @@ export function Actor({
 export function LabCard({ value, badge }: { value: number; badge?: { text: string; solid?: boolean } }) {
   return (
     <g>
-      <rect x={-100} y={0} width={200} height={118} rx={14} fill="#fff" stroke="var(--ink)" strokeWidth={1.5} />
+      <rect x={-100} y={0} width={200} height={118} rx={14} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
       <g transform="translate(-78 24)" style={{ color: "var(--ink)" }}>
         <Heart size={20} />
       </g>
@@ -80,7 +89,7 @@ export function LabCard({ value, badge }: { value: number; badge?: { text: strin
             rx={15}
             fill={badge.solid ? "var(--ink)" : "#fff"}
             stroke="var(--ink)"
-            strokeWidth={1.2}
+            strokeWidth={SW}
           />
           <text
             x={0}
@@ -105,8 +114,8 @@ export function Meter({ value, color, label }: { value: number; color: string; l
   const h = value * METER_K;
   return (
     <g>
-      <rect x={-70} y={-60 * METER_K} width={140} height={60 * METER_K} rx={10} fill="#fff" stroke="var(--ink)" strokeWidth={1.5} />
-      <rect x={-70} y={-h} width={140} height={h} rx={10} fill={color} stroke="var(--ink)" strokeWidth={1.5} />
+      <rect x={-70} y={-60 * METER_K} width={140} height={60 * METER_K} rx={10} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
+      <rect x={-70} y={-h} width={140} height={h} rx={10} fill={color} stroke="var(--ink)" strokeWidth={SW} />
       <text x={0} y={-h - 12} fontSize={30} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
         {value}
       </text>
@@ -133,7 +142,7 @@ export function Door({
 }) {
   return (
     <g transform={`translate(${x} ${floorY - 210})`} opacity={active ? 1 : 0.35}>
-      <rect x={-45} y={0} width={90} height={210} rx={4} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={1.5} />
+      <rect x={-45} y={0} width={90} height={210} rx={4} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={SW} />
       <circle cx={25} cy={120} r={5} fill="var(--ink)" />
       {hospital && (
         <g transform="translate(0 52)">
@@ -164,20 +173,24 @@ export function StickerTube({
   color,
   showContent,
   animate,
+  strokePx,
 }: {
   value: number;
   color: string;
   showContent: boolean;
   animate: boolean;
+  /** Outline width in screen pixels. The tube is scaled, so it uses non-scaling strokes to keep the stage-wide outline width. */
+  strokePx: number;
 }) {
+  const ns = { vectorEffect: "non-scaling-stroke", strokeWidth: strokePx } as const;
   const h = value * BAR_K;
   return (
     <g>
       <rect x={-22} y={0} width={44} height={14} rx={3} fill="var(--gray-600)" />
       <path d={TUBE_BODY} fill="#fff" />
       <path d={TUBE_BLOOD} fill="#c4161c" />
-      <path d={TUBE_BODY} fill="none" stroke="var(--ink)" strokeWidth={1.4} />
-      <rect x={-21} y={34} width={42} height={84} rx={2.5} fill="#fff" stroke="var(--ink)" strokeWidth={1} />
+      <path d={TUBE_BODY} fill="none" stroke="var(--ink)" {...ns} />
+      <rect x={-21} y={34} width={42} height={84} rx={2.5} fill="#fff" stroke="var(--ink)" {...ns} />
       <g style={{ opacity: showContent ? 1 : 0, transition: "opacity 0.4s" }}>
         <g className={animate ? styles.late : undefined}>
           <g transform="translate(-14 46)" style={{ color: "var(--ink)" }}>
@@ -196,7 +209,7 @@ export function StickerTube({
             ng/L
           </text>
         </g>
-        <rect x={-15} y={BAR.top} width={12} height={BAR.bottom - BAR.top} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={0.6} />
+        <rect x={-15} y={BAR.top} width={12} height={BAR.bottom - BAR.top} fill="var(--gray-100)" stroke="var(--ink)" {...ns} />
         <rect
           x={-15}
           y={BAR.bottom - h}
@@ -204,7 +217,7 @@ export function StickerTube({
           height={h}
           fill={color}
           stroke="var(--ink)"
-          strokeWidth={0.6}
+          {...ns}
           className={animate ? styles.grow : undefined}
           style={{ animationDelay: "1s" }}
         />

@@ -1,10 +1,10 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="403.999" height="361.001" viewBox="0 0 403.999 361.001" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Hair">
-<path id="Hair back" d="M11.8603 355.388C3.86002 294.101 -0.140095 241.268 7.86014 199.001C19.8605 93.3343 99.8629 40.5009 199.866 40.5009C304.869 40.5009 381.871 98.6176 393.872 199.001C401.872 251.834 401.872 304.668 397.872 341.651L309.869 346.934L89.8626 357.501L11.8603 355.388Z" fill="#161210" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Hair back" d="M11.8603 355.388C3.86002 294.101 -0.140095 241.268 7.86014 199.001C19.8605 93.3343 99.8629 40.5009 199.866 40.5009C304.869 40.5009 381.871 98.6176 393.872 199.001C401.872 251.834 401.872 304.668 397.872 341.651L309.869 346.934L89.8626 357.501L11.8603 355.388Z" fill="#161210" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
 <g id="Tufts">
-<path id="Tuft 1" d="M191.499 51.5009C185.499 31.5009 175.499 17.5009 166.499 9.50095" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
-<path id="Tuft 2" d="M199.499 51.5009C197.499 31.5009 197.499 15.5009 201.499 3.50095" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
-<path id="Tuft 3" d="M207.499 51.5009C211.499 31.5009 221.499 17.5009 235.499 13.5009" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Tuft 1" d="M191.499 51.5009C185.499 31.5009 175.499 17.5009 166.499 9.50095" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
+<path id="Tuft 2" d="M199.499 51.5009C197.499 31.5009 197.499 15.5009 201.499 3.50095" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
+<path id="Tuft 3" d="M207.499 51.5009C211.499 31.5009 221.499 17.5009 235.499 13.5009" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
 </g>
 </g>
 </svg>

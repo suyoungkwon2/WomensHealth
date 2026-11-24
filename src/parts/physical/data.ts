@@ -46,7 +46,7 @@ export const STEPS: { title?: string; body: string; variant: "dark" | "light"; s
   },
   {
     variant: "dark",
-    body: "The man recovers. The woman does not.",
+    body: "Then, the man recovers. The woman does not.",
     source: "Illustration of a population-level outcome gap, not a single literal case.",
   },
   {

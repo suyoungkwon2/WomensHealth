@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SourceNote } from "@/components";
 import { Character, CHARACTER_CHEST, CHARACTER_FEET } from "./Character";
 import { DISEASE_BURDEN_SHARE_WOMEN, IDENTIFIED, STEPS, THRESHOLD, TRIAL_SHARES, TROPONIN } from "./data";
-import { Actor, Door, Heart, LabCard, MEN, Meter, METER_K, Person, QuestionMark, StickerTube, WOMEN } from "./shapes";
+import { Actor, Door, Heart, LabCard, MEN, Meter, METER_K, Person, QuestionMark, StickerTube, SW, WOMEN } from "./shapes";
 import styles from "./physical.module.css";
 
 /**
@@ -66,8 +66,26 @@ function useNarrow() {
   );
 }
 
+/** Screen pixels per drawing unit (the svg scales to fit its box). */
+function useUnitPx(ref: React.RefObject<SVGSVGElement | null>, vbW: number, vbH: number) {
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width && height) setK(Math.min(width / vbW, height / vbH));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, vbW, vbH]);
+  return k;
+}
+
 export function PhysicalStage({ step }: { step: number }) {
   const narrow = useNarrow();
+  const svgRef = useRef<SVGSVGElement>(null);
+  const unitPx = useUnitPx(svgRef, narrow ? 1140 : 1600, 900);
   // Intro: on first load the characters start below the screen and rise into place.
   const [arrived, setArrived] = useState(false);
   useEffect(() => {
@@ -90,7 +108,7 @@ export function PhysicalStage({ step }: { step: number }) {
   const walking = step === S.DOORS && walkReady;
 
   const manVisible = inSteps(step, [S.ARRIVE, S.OUTCOME, S.REWIND]) || (step === S.DOORS && !walking);
-  const womanOp = inSteps(step, [S.ARRIVE, S.REWIND]) || (step === S.DOORS && !walking) ? 1 : step === S.OUTCOME ? 0.22 : 0;
+  const womanOp = inSteps(step, [S.ARRIVE, S.REWIND]) || (step === S.DOORS && !walking) ? 1 : step === S.OUTCOME ? 0.35 : 0;
   const manX = walking ? DOOR_LEFT : MAN_X[step];
   const womanX = walking ? DOOR_RIGHT : WOMAN_X[step];
   const showFloor = inSteps(step, [S.ARRIVE, S.DOORS, S.OUTCOME, S.REWIND]);
@@ -105,6 +123,7 @@ export function PhysicalStage({ step }: { step: number }) {
   return (
     <>
       <svg
+        ref={svgRef}
         className={styles.svg}
         viewBox={narrow ? "230 0 1140 900" : "0 0 1600 900"}
         preserveAspectRatio={narrow ? "xMidYMin meet" : "xMidYMid meet"}
@@ -118,7 +137,7 @@ export function PhysicalStage({ step }: { step: number }) {
           </text>
         </g>
 
-        <line x1={100} x2={1500} y1={FLOOR_Y} y2={FLOOR_Y} stroke="var(--ink)" strokeWidth={1.5} style={fade(showFloor)} />
+        <line x1={100} x2={1500} y1={FLOOR_Y} y2={FLOOR_Y} stroke="var(--ink)" strokeWidth={SW} style={fade(showFloor)} />
 
         {/* doors (steps 4 and 13): treatment room has a hospital cross */}
         <g style={fade(inSteps(step, [S.DOORS, S.REWIND]))}>
@@ -135,10 +154,6 @@ export function PhysicalStage({ step }: { step: number }) {
           <text x={1180} y={130} fontSize={17} letterSpacing={2.5} textAnchor="middle" fill="var(--text-soft)" style={sans}>
             DID NOT RECOVER
           </text>
-          <g stroke="var(--ink)" strokeWidth={4} strokeLinecap="round" fill="none">
-            <path d="M960 560V650H1040" />
-            <path d="M965 650V740M1035 650V740" />
-          </g>
         </g>
 
         {/* characters */}
@@ -146,19 +161,36 @@ export function PhysicalStage({ step }: { step: number }) {
           x={womanX}
           y={FLOOR_Y + riseY}
           scale={CHAR_SCALE}
+          slow={step === S.OUTCOME}
           opacity={womanOp}
           grayscale={step === S.OUTCOME}
-          delay={step === S.ARRIVE ? 0.2 : 0}
-          fadeDelay={walking ? 0.6 : 0}
+          delay={step === S.ARRIVE ? 0.2 : step === S.OUTCOME ? 0.8 : 0}
+          fadeDelay={walking ? 0.6 : step === S.OUTCOME ? 0.8 : 0}
         >
           <g transform={`translate(${-CHARACTER_FEET.x} ${-CHARACTER_FEET.y})`}>
             <Character who="female" tear={inSteps(step, [S.DOORS, S.OUTCOME])} />
             <ChestPain show={intro} />
           </g>
         </Actor>
-        <Actor x={manX} y={FLOOR_Y + riseY} scale={CHAR_SCALE} opacity={manVisible ? 1 : 0} fadeDelay={walking ? 0.6 : 0}>
+        {/* a plain white cloth rises from her feet and covers her up to the head */}
+        <g className={step === S.OUTCOME ? styles.cloth : undefined} style={{ opacity: step === S.OUTCOME ? 1 : 0 }}>
+          <rect x={WOMAN_X[S.OUTCOME] - 172} y={222} width={344} height={FLOOR_Y + 8 - 222} rx={6} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
+          <g stroke="var(--gray-200)" strokeWidth={3} strokeLinecap="round">
+            <line x1={WOMAN_X[S.OUTCOME] - 70} x2={WOMAN_X[S.OUTCOME] - 76} y1={250} y2={720} />
+            <line x1={WOMAN_X[S.OUTCOME] + 60} x2={WOMAN_X[S.OUTCOME] + 68} y1={250} y2={720} />
+          </g>
+        </g>
+        <Actor
+          x={manX}
+          y={FLOOR_Y + riseY}
+          scale={CHAR_SCALE}
+          slow={step === S.OUTCOME}
+          delay={step === S.OUTCOME ? 0.2 : 0}
+          opacity={manVisible ? 1 : 0}
+          fadeDelay={walking ? 0.6 : step === S.OUTCOME ? 0.2 : 0}
+        >
           <g transform={`translate(${-CHARACTER_FEET.x} ${-CHARACTER_FEET.y})`}>
-            <Character who="male" />
+            <Character who="male" smile={step === S.OUTCOME} />
             <ChestPain show={intro} />
           </g>
         </Actor>
@@ -171,7 +203,7 @@ export function PhysicalStage({ step }: { step: number }) {
           opacity={tubesOn ? 1 : 0}
           fadeDelay={step === S.ARRIVE ? 1 : 0}
         >
-          <StickerTube value={TROPONIN.man} color={MEN} showContent={step !== S.ARRIVE} animate={step === S.TUBE} />
+          <StickerTube value={TROPONIN.man} color={MEN} showContent={step !== S.ARRIVE} animate={step === S.TUBE} strokePx={SW * unitPx} />
         </Actor>
         <Actor
           x={tubesBig ? TUBE_BIG.womanX : WOMAN_X[0] + 215}
@@ -180,13 +212,26 @@ export function PhysicalStage({ step }: { step: number }) {
           opacity={tubesOn ? 1 : 0}
           fadeDelay={step === S.ARRIVE ? 1 : 0}
         >
-          <StickerTube value={TROPONIN.woman} color={WOMEN} showContent={step !== S.ARRIVE} animate={step === S.TUBE} />
+          <StickerTube value={TROPONIN.woman} color={WOMEN} showContent={step !== S.ARRIVE} animate={step === S.TUBE} strokePx={SW * unitPx} />
         </Actor>
         {/* the 40 ng/L cutoff across both stickers */}
         <g style={fade(inSteps(step, [S.CUTOFF, S.WHY]), 0.3)}>
-          <line x1={330} x2={1270} y1={CUTOFF_LINE_Y} y2={CUTOFF_LINE_Y} stroke="var(--ink)" strokeWidth={2.5} strokeDasharray="10 6" />
-          <text x={CX} y={CUTOFF_LINE_Y - 12} fontSize={18} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
+          <line x1={330} x2={1270} y1={CUTOFF_LINE_Y} y2={CUTOFF_LINE_Y} stroke="var(--ink)" strokeWidth={SW} strokeDasharray="10 6" />
+          <rect x={CX - 78} y={CUTOFF_LINE_Y - 16} width={156} height={32} rx={16} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
+          <text x={CX} y={CUTOFF_LINE_Y + 6} fontSize={17} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
             {THRESHOLD.single} ng/L cutoff
+          </text>
+        </g>
+        {/* what the line means: above it = heart attack, below it = not */}
+        <g style={fade(step === S.CUTOFF, 0.5)}>
+          <g transform={`translate(${CX - 92} ${CUTOFF_LINE_Y - 56})`} style={{ color: "#c4161c" }}>
+            <Heart size={26} />
+          </g>
+          <text x={CX - 70} y={CUTOFF_LINE_Y - 47} fontSize={20} fontWeight={700} letterSpacing={1} fill="#c4161c" style={sans}>
+            HEART ATTACK
+          </text>
+          <text x={CX} y={CUTOFF_LINE_Y + 52} fontSize={20} fontWeight={700} letterSpacing={1} textAnchor="middle" fill="var(--text-soft)" style={sans}>
+            NO HEART ATTACK
           </text>
         </g>
         <g style={fade(step === S.CUTOFF, 0.6)}>
@@ -212,9 +257,9 @@ export function PhysicalStage({ step }: { step: number }) {
             <g className={step === S.METERS ? styles.beat1 : undefined} style={{ opacity: step === S.METERS ? undefined : 0 }}>
               <g transform="translate(340 240)">
                 <Heart size={190} fill="#c4161c" />
-                <path d="M-5 -65 L14 -30 L-9 -4 L12 26" fill="none" stroke="var(--ink)" strokeWidth={4} strokeLinejoin="round" />
+                <path d="M-5 -65 L14 -30 L-9 -4 L12 26" fill="none" stroke="var(--ink)" strokeWidth={SW} strokeLinejoin="round" />
               </g>
-              <rect x={220} y={385} width={240} height={40} rx={20} fill="#f7d9d9" stroke="var(--ink)" strokeWidth={1.5} />
+              <rect x={220} y={385} width={240} height={40} rx={20} fill="#f7d9d9" stroke="var(--ink)" strokeWidth={SW} />
               {[292, 322, 352, 382].map((x, i) => (
                 <circle
                   key={x}
@@ -234,7 +279,7 @@ export function PhysicalStage({ step }: { step: number }) {
             {/* beat 2: level bar */}
             <g className={step === S.METERS ? styles.beat2 : undefined} style={{ opacity: step === S.METERS ? undefined : 0 }}>
               <path d="M590 130l12 18h-24z" fill="var(--ink)" />
-              <rect x={567} y={158} width={46} height={262} rx={8} fill="#fff" stroke="var(--ink)" strokeWidth={1.5} />
+              <rect x={567} y={158} width={46} height={262} rx={8} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
               <rect x={567} y={250} width={46} height={170} rx={8} fill="var(--gray-600)" className={step === S.METERS ? styles.rise : undefined} />
               <text x={590} y={455} fontSize={16} textAnchor="middle" fill="var(--text-soft)" style={sans}>
                 higher = more damage
@@ -255,7 +300,7 @@ export function PhysicalStage({ step }: { step: number }) {
                 y1={440 - THRESHOLD.single * METER_K}
                 y2={440 - THRESHOLD.single * METER_K}
                 stroke="var(--ink)"
-                strokeWidth={2.5}
+                strokeWidth={SW}
                 strokeDasharray="10 6"
               />
               <text x={800} y={440 - THRESHOLD.single * METER_K - 10} fontSize={18} fontWeight={700} fill="var(--ink)" style={sans}>
@@ -328,7 +373,7 @@ function ChestPain({ show }: { show: boolean }) {
 function Badge({ x, y, text, solid, width = 124 }: { x: number; y: number; text: string; solid?: boolean; width?: number }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <rect x={-width / 2} y={-20} width={width} height={30} rx={15} fill={solid ? "var(--ink)" : "#fff"} stroke="var(--ink)" strokeWidth={1.2} />
+      <rect x={-width / 2} y={-20} width={width} height={30} rx={15} fill={solid ? "var(--ink)" : "#fff"} stroke="var(--ink)" strokeWidth={SW} />
       <text x={0} y={0} fontSize={13} letterSpacing={1} textAnchor="middle" fill={solid ? "#fff" : "var(--ink)"} style={sans}>
         {text}
       </text>
@@ -346,7 +391,7 @@ function TrialChart({ animate }: { animate: boolean }) {
     <g>
       {ticks.map((t) => (
         <g key={t}>
-          <line x1={CH.x0 - 15} x2={CH_RIGHT} y1={CH.base - t * CH.k} y2={CH.base - t * CH.k} stroke={t === 0 ? "var(--ink)" : "var(--gray-200)"} strokeWidth={t === 0 ? 1.5 : 1} />
+          <line x1={CH.x0 - 15} x2={CH_RIGHT} y1={CH.base - t * CH.k} y2={CH.base - t * CH.k} stroke={t === 0 ? "var(--ink)" : "var(--gray-200)"} strokeWidth={t === 0 ? SW : 1} />
           <text x={CH.x0 - 24} y={CH.base - t * CH.k + 5} fontSize={15} textAnchor="end" fill="var(--text-soft)" style={sans}>
             {t}%
           </text>
@@ -364,7 +409,7 @@ function TrialChart({ animate }: { animate: boolean }) {
               height={h}
               fill={WOMEN}
               stroke="var(--ink)"
-              strokeWidth={1.4}
+              strokeWidth={SW}
               className={animate ? styles.grow : undefined}
               style={{ animationDelay: `${0.5 + i * 0.25}s` }}
             />
@@ -377,7 +422,7 @@ function TrialChart({ animate }: { animate: boolean }) {
           </g>
         );
       })}
-      <line x1={CH.x0 - 5} x2={CH_RIGHT} y1={refY} y2={refY} stroke={WOMEN} strokeWidth={2} strokeDasharray="8 6" />
+      <line x1={CH.x0 - 5} x2={CH_RIGHT} y1={refY} y2={refY} stroke={WOMEN} strokeWidth={SW} strokeDasharray="8 6" />
       <text x={CH_RIGHT} y={refY - 10} fontSize={15} textAnchor="end" fill="var(--ink)" style={sans}>
         <tspan fontWeight={700} fill={WOMEN}>
           {DISEASE_BURDEN_SHARE_WOMEN}%
@@ -404,7 +449,7 @@ function BeforeAfterChart({ animate }: { animate: boolean }) {
       <text x={CX} y={100} fontSize={22} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
         Type 1 heart attacks identified
       </text>
-      <line x1={380} x2={1220} y1={BA.base} y2={BA.base} stroke="var(--ink)" strokeWidth={1.5} />
+      <line x1={380} x2={1220} y1={BA.base} y2={BA.base} stroke="var(--ink)" strokeWidth={SW} />
       {groups.map((g) => {
         const bars = [
           { x: g.cx - BA.w - 6, v: g.d.before, fill: g.light, label: "Before" },
@@ -421,7 +466,7 @@ function BeforeAfterChart({ animate }: { animate: boolean }) {
                   height={b.v * BA.k}
                   fill={b.fill}
                   stroke="var(--ink)"
-                  strokeWidth={1.4}
+                  strokeWidth={SW}
                   className={animate ? styles.grow : undefined}
                   style={{ animationDelay: `${i * 0.6}s` }}
                 />

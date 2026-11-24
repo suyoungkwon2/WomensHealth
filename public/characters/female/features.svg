@@ -1,10 +1,10 @@
 <svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="207" height="139" viewBox="0 0 207 139" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="Features">
-<path id="Left eyebrow" d="M3.00013 22C24.0001 23.5 38.0001 17.5 53.0001 3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
-<path id="Right eyebrow" d="M155 5C170.5 25 187.5 28 204 28" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Left eyebrow" d="M3.00013 22C24.0001 23.5 38.0001 17.5 53.0001 3" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
+<path id="Right eyebrow" d="M155 5C170.5 25 187.5 28 204 28" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
 <path id="Left eye" d="M37.0001 68C43.6275 68 49.0001 62.6274 49.0001 56C49.0001 49.3726 43.6275 44 37.0001 44C30.3727 44 25.0001 49.3726 25.0001 56C25.0001 62.6274 30.3727 68 37.0001 68Z" fill="#161210"/>
 <path id="Right eye" d="M171 68C177.628 68 183 62.6274 183 56C183 49.3726 177.628 44 171 44C164.373 44 159 49.3726 159 56C159 62.6274 164.373 68 171 68Z" fill="#161210"/>
-<path id="Nose" d="M103 56C86.0001 56 86.0001 78 104 82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
-<path id="Mouth" d="M61.0001 136C91.0001 110.667 121.333 110.667 152 136" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Nose" d="M103 56C86.0001 56 86.0001 78 104 82" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
+<path id="Mouth" d="M61.0001 136C91.0001 110.667 121.333 110.667 152 136" stroke-width="5.26" stroke-linecap="round" stroke-linejoin="round" stroke="#000000"/>
 </g>
 </svg>

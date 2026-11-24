@@ -65,7 +65,8 @@ function img(who: Who, [file, x, y, w, h, vw, vh]: Part, x0: number) {
   );
 }
 
-export function Character({ who, tear = false }: { who: Who; tear?: boolean }) {
+/** `smile` (male only) crossfades the features layer to the smiling face: eyebrows and mouth flipped upside down. */
+export function Character({ who, tear = false, smile = false }: { who: Who; tear?: boolean; smile?: boolean }) {
   const female = who === "female";
   const x0 = female ? FEMALE_X0 : MALE_X0;
   const before = female ? FEMALE_BEFORE_GRID : MALE_BEFORE_GRID;
@@ -90,7 +91,18 @@ export function Character({ who, tear = false }: { who: Who; tear?: boolean }) {
           strokeWidth={2.6}
         />
       </g>
-      {after.map((p) => img(who, p, x0))}
+      {after.map((p) =>
+        !female && p[0] === "features" ? (
+          <g key="features">
+            <g style={{ opacity: smile ? 0 : 1, transition: "opacity 0.9s ease" }}>{img(who, p, x0)}</g>
+            <g style={{ opacity: smile ? 1 : 0, transition: "opacity 0.9s ease" }}>
+              {img(who, ["features-smile", ...p.slice(1)] as unknown as Part, x0)}
+            </g>
+          </g>
+        ) : (
+          img(who, p, x0)
+        ),
+      )}
       <g style={{ opacity: tear ? 1 : 0, transition: "opacity 0.5s ease" }}>
         {female ? (
           img("female", ["tear", 416, 337, 30, 51, 34, 55], x0)
