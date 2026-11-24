@@ -244,12 +244,57 @@ export function QuestionMark({ x, y, size = 220 }: { x: number; y: number; size?
   );
 }
 
-/** One of 100 identical participant icons, 30×30. */
-export function Person({ x, y, fill }: { x: number; y: number; fill: string }) {
+/** Hospital wristband name tag, 80 × 60 (plus a 9-unit strap tab on top), top-left at (0, 0) of its own space. */
+export const TAG = { w: 80, h: 60 };
+
+/**
+ * One tag, top-left at (x, y). The frame color carries the group; the label is simplified:
+ * a person icon, two text lines and a barcode.
+ */
+export function NameTag({
+  x,
+  y,
+  fill,
+  gathered = true,
+  scatter,
+}: {
+  x: number;
+  y: number;
+  fill: string;
+  /** false: the tag waits far away (scatter offset); true: it flies to its place. */
+  gathered?: boolean;
+  scatter?: { dx: number; dy: number; rot: number; delay: number };
+}) {
+  const away = scatter && !gathered;
   return (
-    <g transform={`translate(${x} ${y})`} className={styles.person} style={{ fill }}>
-      <circle cx={15} cy={8} r={6.5} />
-      <path d="M4 29c0-8 4.5-12.5 11-12.5S26 21 26 29z" />
+    <g transform={`translate(${x} ${y})`}>
+      <g
+        className={styles.tag}
+        style={
+          {
+            transform: away ? `translate(${scatter.dx}px, ${scatter.dy}px) rotate(${scatter.rot}deg)` : "translate(0px, 0px) rotate(0deg)",
+            "--tag-delay": `${gathered && scatter ? scatter.delay : 0}s`,
+          } as CSSProperties
+        }
+      >
+      {/* strap tab with a slot */}
+      <rect x={28} y={-9} width={24} height={14} rx={5} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
+      <rect x={34} y={-5} width={12} height={4} rx={2} className={styles.person} style={{ fill }} />
+      {/* white plastic body, colored frame, white label */}
+      <rect x={0} y={0} width={TAG.w} height={TAG.h} rx={11} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
+      <rect x={5} y={5} width={TAG.w - 10} height={TAG.h - 10} rx={7} className={styles.person} style={{ fill }} stroke="var(--ink)" strokeWidth={1} />
+      <rect x={10} y={10} width={TAG.w - 20} height={TAG.h - 20} rx={3.5} fill="#fff" />
+      {/* person icon */}
+      <g fill="var(--gray-600)">
+        <circle cx={22} cy={19} r={5} />
+        <path d="M13 31c0-6 3.8-9 9-9s9 3 9 9z" />
+      </g>
+      <line x1={37} x2={66} y1={18} y2={18} stroke="var(--gray-400)" strokeWidth={2.5} strokeLinecap="round" />
+      <line x1={37} x2={58} y1={25} y2={25} stroke="var(--gray-400)" strokeWidth={2.5} strokeLinecap="round" />
+      {Array.from({ length: 15 }, (_, i) => (
+        <line key={i} x1={13 + i * 3.6} x2={13 + i * 3.6} y1={36} y2={47} stroke="var(--ink)" strokeWidth={i % 3 === 0 ? 2 : 1} />
+      ))}
+      </g>
     </g>
   );
 }

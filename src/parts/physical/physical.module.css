@@ -61,6 +61,13 @@
   transition: fill 0.8s ease;
 }
 
+/* Name tags gather from all sides (delay is random per tag, set inline). */
+.tag {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.25, 1) var(--tag-delay, 0s);
+}
+
 /* Beats of the troponin explanation (step 6): heart, vessel, test tube, arrow, cutoff. */
 .beat1,
 .beat2,
@@ -171,7 +178,7 @@
     stroke-dasharray: none;
     stroke-dashoffset: 0;
   }
-  .actor, .person {
+  .actor, .person, .tag {
     transition: none;
   }
 }

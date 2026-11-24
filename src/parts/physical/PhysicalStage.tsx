@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SourceNote } from "@/components";
 import { Character, CHARACTER_CHEST, CHARACTER_FEET } from "./Character";
 import { DISEASE_BURDEN_SHARE_WOMEN, IDENTIFIED, STEPS, THRESHOLD, TRIAL_SHARES, TROPONIN } from "./data";
-import { Actor, Door, Heart, LabCard, MEN, Meter, METER_K, Person, QuestionMark, StickerTube, SW, WOMEN } from "./shapes";
+import { Actor, Door, Heart, LabCard, MEN, Meter, METER_K, NameTag, TAG, QuestionMark, StickerTube, SW, WOMEN } from "./shapes";
 import styles from "./physical.module.css";
 
 /**
@@ -54,6 +54,11 @@ TUBE6.barTop = TUBE6.y + 54 * TUBE6.k; // sticker bar track top (60 ng/L)
 TUBE6.barBottom = TUBE6.y + 110 * TUBE6.k; // bottom (0 ng/L)
 TUBE6.cutY = TUBE6.y + (110 - 40 * ((110 - 54) / 60)) * TUBE6.k; // 40 ng/L
 
+// 100 name tags on a flat grid with a small gap between them. The grid is drawn at GRID_K of its natural size.
+const PITCH = { x: 90, y: 78 };
+const GRID_K = 0.55;
+const GRID_W = (9 * PITCH.x + TAG.w) * GRID_K;
+
 const inSteps = (step: number, list: number[]) => list.includes(step);
 const fade = (on: boolean, delay = 0): React.CSSProperties => ({
   opacity: on ? 1 : 0,
@@ -89,7 +94,39 @@ function useUnitPx(ref: React.RefObject<SVGSVGElement | null>, vbW: number, vbH:
   return k;
 }
 
-export function PhysicalStage({ step }: { step: number }) {
+/** Step where the name tags turn gray → colored. */
+export const COLOR_STEP = S.GRID_COLOR;
+
+/** Deterministic pseudo-random number in [0, 1) for tag i and channel k. */
+const rnd = (i: number, k: number) => {
+  const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+};
+/**
+ * Where each name tag waits before it flies in. Every tag starts straight "outside" its own place
+ * (on the ray from the grid center through it), so tags arrive from all sides but their paths hardly cross.
+ * Outer tags leave first, inner ones follow; only a little spin and jitter.
+ */
+const TAG_SCATTER = (() => {
+  const cx = (9 * PITCH.x + TAG.w) / 2;
+  const cy = (9 * PITCH.y + TAG.h) / 2;
+  const rMax = Math.hypot(cx, cy);
+  return Array.from({ length: 100 }, (_, i) => {
+    const vx = (i % 10) * PITCH.x + TAG.w / 2 - cx;
+    const vy = Math.floor(i / 10) * PITCH.y + TAG.h / 2 - cy;
+    const r = Math.hypot(vx, vy) || 1;
+    const dist = 1300 + rnd(i, 2) * 250;
+    return {
+      dx: (vx / r) * dist,
+      dy: (vy / r) * dist,
+      rot: (rnd(i, 3) - 0.5) * 70,
+      delay: (1 - r / rMax) * 0.6 + rnd(i, 4) * 0.12,
+    };
+  });
+})();
+
+/** `colorReady`: the “Look closer” card is on screen, so the tags may turn colored. */
+export function PhysicalStage({ step, colorReady = true }: { step: number; colorReady?: boolean }) {
   const narrow = useNarrow();
   const svgRef = useRef<SVGSVGElement>(null);
   const unitPx = useUnitPx(svgRef, narrow ? 1140 : 1600, 900);
@@ -125,6 +162,8 @@ export function PhysicalStage({ step }: { step: number }) {
   const on6 = step === S.METERS;
   const showGrid = inSteps(step, [S.GRID_GRAY, S.GRID_COLOR, S.TREND]);
   const smallGrid = step === S.TREND;
+  const gridGathered = step >= S.GRID_GRAY;
+  const colored = step > S.GRID_COLOR || (step === S.GRID_COLOR && colorReady);
   const tubesBig = step !== S.ARRIVE;
   const tubesOn = step === S.ARRIVE ? intro : inSteps(step, [S.TUBE, S.CUTOFF]);
   const source = STEPS[step]?.source;
@@ -350,11 +389,12 @@ export function PhysicalStage({ step }: { step: number }) {
         </g>
 
         {/* ---------- steps 8–10: the 100 participants ---------- */}
-        <Actor x={smallGrid ? 290 : 587} y={smallGrid ? 230 : 80} scale={smallGrid ? 0.42 : 1} opacity={showGrid ? 1 : 0}>
+        <Actor x={smallGrid ? 270 : CX - GRID_W / 2} y={smallGrid ? 230 : 80} scale={smallGrid ? 0.42 * GRID_K : GRID_K} opacity={showGrid ? 1 : 0}>
           {Array.from({ length: 100 }, (_, i) => {
-            const isWoman = (i * 37) % 100 < 20; // scattered, deterministic: exactly 20 of 100
-            const fill = step === S.GRID_GRAY ? "var(--gray-400)" : isWoman ? WOMEN : MEN;
-            return <Person key={i} x={(i % 10) * 44} y={Math.floor(i / 10) * 44} fill={fill} />;
+            const isWoman = i < 20; // top two rows: exactly 20 of 100
+            const fill = !colored ? "var(--gray-400)" : isWoman ? WOMEN : MEN;
+            // +10 leaves room for the strap tab above the first row
+            return <NameTag key={i} x={(i % 10) * PITCH.x} y={Math.floor(i / 10) * PITCH.y + 10} fill={fill} gathered={gridGathered} scatter={TAG_SCATTER[i]} />;
           })}
         </Actor>
         <g style={fade(step === S.GRID_GRAY)}>
@@ -365,7 +405,7 @@ export function PhysicalStage({ step }: { step: number }) {
             Each icon = 1 of 100 participants in an average trial
           </text>
         </g>
-        <g style={fade(step === S.GRID_COLOR, 0.3)}>
+        <g style={fade(step === S.GRID_COLOR && colorReady, 0.3)}>
           <text x={CX} y={555} fontSize={34} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
             <tspan fill={WOMEN}>20 women</tspan> : <tspan fill={MEN}>80 men</tspan>
           </text>
