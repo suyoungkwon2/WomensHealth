@@ -1,21 +1,14 @@
 /* ---------- steps: text card position ---------- */
-/* Desktop: card on the left, graphic on the right. Phones: card at the bottom. */
+/* The graphic is the full-screen background; the card sits over its lower part,
+   above the source line. */
 .step {
-  justify-content: flex-start;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 68px;
 }
 
 .card {
-  width: min(520px, 100%);
-}
-
-@media (max-width: 900px) {
-  .step {
-    align-items: flex-end;
-    padding-bottom: 16px;
-  }
-  .card {
-    width: 100%;
-  }
+  width: min(900px, 100%);
 }
 
 /* ---------- stage ---------- */

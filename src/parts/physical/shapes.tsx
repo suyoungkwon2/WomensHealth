@@ -92,13 +92,13 @@ export function LabCard({ value, badge }: { value: number; badge?: { text: strin
   );
 }
 
-/** Vertical level meter: 0–60 ng/L over 360px, base at y = 0 (grows upward), centered on x = 0. */
-export const METER_K = 6;
+/** Vertical level meter: 0–60 ng/L, base at y = 0 (grows upward), centered on x = 0. */
+export const METER_K = 4.2; // px per ng/L
 export function Meter({ value, color, label }: { value: number; color: string; label: string }) {
   const h = value * METER_K;
   return (
     <g>
-      <rect x={-70} y={-360} width={140} height={360} rx={10} fill="#fff" stroke="var(--ink)" strokeWidth={1.5} />
+      <rect x={-70} y={-60 * METER_K} width={140} height={60 * METER_K} rx={10} fill="#fff" stroke="var(--ink)" strokeWidth={1.5} />
       <rect x={-70} y={-h} width={140} height={h} rx={10} fill={color} stroke="var(--ink)" strokeWidth={1.5} />
       <text x={0} y={-h - 12} fontSize={30} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
         {value}
@@ -110,12 +110,13 @@ export function Meter({ value, color, label }: { value: number; color: string; l
   );
 }
 
-export function Door({ x, label, active = true }: { x: number; label: string; active?: boolean }) {
+/** Door standing on the floor line `floorY`. */
+export function Door({ x, floorY, label, active = true }: { x: number; floorY: number; label: string; active?: boolean }) {
   return (
-    <g transform={`translate(${x} 0)`} opacity={active ? 1 : 0.35}>
-      <rect x={-45} y={590} width={90} height={210} rx={4} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={1.5} />
-      <circle cx={25} cy={700} r={5} fill="var(--ink)" />
-      <text x={0} y={570} fontSize={15} letterSpacing={1.5} textAnchor="middle" fill="var(--ink)" style={sans}>
+    <g transform={`translate(${x} ${floorY - 210})`} opacity={active ? 1 : 0.35}>
+      <rect x={-45} y={0} width={90} height={210} rx={4} fill="var(--gray-100)" stroke="var(--ink)" strokeWidth={1.5} />
+      <circle cx={25} cy={110} r={5} fill="var(--ink)" />
+      <text x={0} y={-20} fontSize={15} letterSpacing={1.5} textAnchor="middle" fill="var(--ink)" style={sans}>
         {label}
       </text>
     </g>
