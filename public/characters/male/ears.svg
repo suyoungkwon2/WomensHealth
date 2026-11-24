@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="428" height="70" viewBox="0 0 428 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Ears">
+<path id="Left ear" d="M35 67C52.6731 67 67 52.6731 67 35C67 17.3269 52.6731 3 35 3C17.3269 3 3 17.3269 3 35C3 52.6731 17.3269 67 35 67Z" fill="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Right ear" d="M393 67C410.673 67 425 52.6731 425 35C425 17.3269 410.673 3 393 3C375.327 3 361 17.3269 361 35C361 52.6731 375.327 67 393 67Z" fill="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+</g>
+</svg>

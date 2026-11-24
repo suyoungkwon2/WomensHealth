@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="771.001" height="454.001" viewBox="0 0 771.001 454.001" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Shirt">
+<path id="Shirt shape" d="M265.501 3.5C135.501 28.5 55.5005 158.5 30.5005 278.5L3.50052 413.5L133.501 450.5L180.501 348.5C183.501 378.5 185.501 398.5 187.501 410.5H590.501C591.501 398.5 593.501 378.5 595.501 348.5L637.501 450.5L767.501 413.5C755.501 338.5 737.501 258.5 717.501 198.5C677.501 78.5 615.501 20.5 510.501 3.5H265.501Z" fill="#E5450B" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Left fold" d="M211.501 170.5C189.501 248.5 177.501 338.5 185.501 408.5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+<path id="Right fold" d="M561.501 170.5C583.501 248.5 595.501 338.5 589.501 408.5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#1E0F0F"/>
+</g>
+</svg>
