@@ -174,6 +174,8 @@ export function StickerTube({
   showContent,
   animate,
   strokePx,
+  hideValue = false,
+  delay = 1,
 }: {
   value: number;
   color: string;
@@ -181,6 +183,10 @@ export function StickerTube({
   animate: boolean;
   /** Outline width in screen pixels. The tube is scaled, so it uses non-scaling strokes to keep the stage-wide outline width. */
   strokePx: number;
+  /** Hide the number and unit (a generic, non-patient level). */
+  hideValue?: boolean;
+  /** Seconds before the sticker content fades in and the bar grows. */
+  delay?: number;
 }) {
   const ns = { vectorEffect: "non-scaling-stroke", strokeWidth: strokePx } as const;
   const h = value * BAR_K;
@@ -192,7 +198,7 @@ export function StickerTube({
       <path d={TUBE_BODY} fill="none" stroke="var(--ink)" {...ns} />
       <rect x={-21} y={34} width={42} height={84} rx={2.5} fill="#fff" stroke="var(--ink)" {...ns} />
       <g style={{ opacity: showContent ? 1 : 0, transition: "opacity 0.4s" }}>
-        <g className={animate ? styles.late : undefined}>
+        <g className={animate ? styles.late : undefined} style={animate ? { animationDelay: `${delay}s` } : undefined}>
           <g transform="translate(-14 46)" style={{ color: "var(--ink)" }}>
             <Heart size={7} />
           </g>
@@ -202,12 +208,16 @@ export function StickerTube({
           {[0, 20, 40, 60].map((t) => (
             <line key={t} x1={-3} x2={-0.5} y1={BAR.bottom - t * BAR_K} y2={BAR.bottom - t * BAR_K} stroke="var(--text-soft)" strokeWidth={0.5} />
           ))}
-          <text x={1.5} y={89} fontSize={13} fontWeight={700} fill="var(--ink)" style={sans}>
-            {value}
-          </text>
-          <text x={2} y={98} fontSize={5.5} fill="var(--text-soft)" style={sans}>
-            ng/L
-          </text>
+          {!hideValue && (
+            <>
+              <text x={1.5} y={89} fontSize={13} fontWeight={700} fill="var(--ink)" style={sans}>
+                {value}
+              </text>
+              <text x={2} y={98} fontSize={5.5} fill="var(--text-soft)" style={sans}>
+                ng/L
+              </text>
+            </>
+          )}
         </g>
         <rect x={-15} y={BAR.top} width={12} height={BAR.bottom - BAR.top} fill="var(--gray-100)" stroke="var(--ink)" {...ns} />
         <rect
@@ -219,7 +229,7 @@ export function StickerTube({
           stroke="var(--ink)"
           {...ns}
           className={animate ? styles.grow : undefined}
-          style={{ animationDelay: "1s" }}
+          style={{ animationDelay: `${delay + 0.2}s` }}
         />
       </g>
     </g>

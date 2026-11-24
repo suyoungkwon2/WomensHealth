@@ -25,7 +25,7 @@ export const IDENTIFIED = {
 };
 
 /** One entry per scroll step, in order. `title` is optional. Step indexes are named in PhysicalStage.tsx (`S`). */
-export const STEPS: { title?: string; body: string; variant: "dark" | "light"; source?: string }[] = [
+export const STEPS: { title?: string; body: string; variant: "dark" | "light"; source?: string; layout?: "left" }[] = [
   {
     variant: "dark",
     body: "A man and a woman arrive at the emergency room with the same heart attack symptoms. Both get the same blood test.",
@@ -57,6 +57,7 @@ export const STEPS: { title?: string; body: string; variant: "dark" | "light"; s
   {
     variant: "light",
     title: "What is troponin? And one threshold for everyone",
+    layout: "left", // text on the left, graphic on the right
     body: "Troponin is a protein inside the heart muscle. When the heart is damaged, it leaks into the blood. As the amount of troponin in the blood increases, so does the likelihood of a heart attack. To decide when treatment is needed, doctors look to an established threshold. At this hospital, it was the same amount for everyone: 40 nanograms per liter.",
     source: "Single diagnostic threshold of 40 ng/L for both sexes. Lee et al., JACC, 2019.",
   },

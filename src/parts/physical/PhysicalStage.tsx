@@ -26,7 +26,7 @@ const S = {
   CUTOFF: 2, //  the 40 ng/L line: man above, woman below
   DOORS: 3, //   doors appear; man → treatment, woman → exit, both disappear
   OUTCOME: 4, // split screen: recovered / did not recover
-  WHY: 5, //     freeze the tubes, big question mark
+  WHY: 5, //     keep the outcome scene (man recovered / woman not) while the question appears
   METERS: 6, //  what is troponin + one threshold
   GRID_GRAY: 7, // 100 participants
   GRID_COLOR: 8, // 20 women : 80 men
@@ -38,14 +38,21 @@ const S = {
 
 // Man always on the left, woman always on the right. Treatment room = left door, exit = right door.
 //                 0    1    2    3    4    5    6    7    8    9   10   11   12
-const MAN_X = [560, 560, 560, 560, 520, 560, 560, 560, 560, 560, 560, 560, 480];
-const WOMAN_X = [1040, 1040, 1040, 1040, 1180, 1040, 1040, 1040, 1040, 1040, 1040, 1040, 800];
+const MAN_X = [560, 560, 560, 560, 520, 520, 560, 560, 560, 560, 560, 560, 480];
+const WOMAN_X = [1040, 1040, 1040, 1040, 1180, 1180, 1040, 1040, 1040, 1040, 1040, 1040, 800];
 const DOOR_LEFT = 170;
 const DOOR_RIGHT = 1430;
 
 // Blood tubes: small beside the characters on step 0, enlarged on steps 1–2 and 5.
 const TUBE_BIG = { scale: 3, y: 100, manX: 560, womanX: 1040 };
 const CUTOFF_LINE_Y = TUBE_BIG.y + (110 - 40 * ((110 - 54) / 60)) * TUBE_BIG.scale; // where 40 ng/L sits on the sticker bars
+
+// Step 6 graphic: vessel path from the heart down into the tube cap, and the tube on the right.
+const VESSEL = "M 960 250 H 1260 Q 1290 250 1290 280 V 335";
+const TUBE6 = { x: 1290, y: 330, k: 2.6, barTop: 0, barBottom: 0, cutY: 0 };
+TUBE6.barTop = TUBE6.y + 54 * TUBE6.k; // sticker bar track top (60 ng/L)
+TUBE6.barBottom = TUBE6.y + 110 * TUBE6.k; // bottom (0 ng/L)
+TUBE6.cutY = TUBE6.y + (110 - 40 * ((110 - 54) / 60)) * TUBE6.k; // 40 ng/L
 
 const inSteps = (step: number, list: number[]) => list.includes(step);
 const fade = (on: boolean, delay = 0): React.CSSProperties => ({
@@ -107,17 +114,19 @@ export function PhysicalStage({ step }: { step: number }) {
   }, [step]);
   const walking = step === S.DOORS && walkReady;
 
-  const manVisible = inSteps(step, [S.ARRIVE, S.OUTCOME, S.REWIND]) || (step === S.DOORS && !walking);
-  const womanOp = inSteps(step, [S.ARRIVE, S.REWIND]) || (step === S.DOORS && !walking) ? 1 : step === S.OUTCOME ? 0.35 : 0;
+  // The WHY step keeps the outcome scene on screen; only the text card changes.
+  const outcome = step === S.OUTCOME || step === S.WHY;
+  const manVisible = inSteps(step, [S.ARRIVE, S.OUTCOME, S.WHY, S.REWIND]) || (step === S.DOORS && !walking);
+  const womanOp = inSteps(step, [S.ARRIVE, S.REWIND]) || (step === S.DOORS && !walking) ? 1 : outcome ? 0.35 : 0;
   const manX = walking ? DOOR_LEFT : MAN_X[step];
   const womanX = walking ? DOOR_RIGHT : WOMAN_X[step];
-  const showFloor = inSteps(step, [S.ARRIVE, S.DOORS, S.OUTCOME, S.REWIND]);
+  const showFloor = inSteps(step, [S.ARRIVE, S.DOORS, S.OUTCOME, S.WHY, S.REWIND]);
   const showCards = step === S.REWIND;
-  const showMeters = inSteps(step, [S.METERS, S.RECAP]);
+  const on6 = step === S.METERS;
   const showGrid = inSteps(step, [S.GRID_GRAY, S.GRID_COLOR, S.TREND]);
   const smallGrid = step === S.TREND;
   const tubesBig = step !== S.ARRIVE;
-  const tubesOn = step === S.ARRIVE ? intro : inSteps(step, [S.TUBE, S.CUTOFF, S.WHY]);
+  const tubesOn = step === S.ARRIVE ? intro : inSteps(step, [S.TUBE, S.CUTOFF]);
   const source = STEPS[step]?.source;
 
   return (
@@ -146,7 +155,7 @@ export function PhysicalStage({ step }: { step: number }) {
         </g>
 
         {/* split screen: recovered vs. did not recover */}
-        <g style={fade(step === S.OUTCOME)}>
+        <g style={fade(outcome)}>
           <line x1={CX} x2={CX} y1={100} y2={FLOOR_Y} stroke="var(--gray-400)" strokeWidth={1.5} strokeDasharray="6 6" />
           <text x={520} y={130} fontSize={17} letterSpacing={2.5} textAnchor="middle" fill="var(--text-soft)" style={sans}>
             RECOVERED
@@ -161,19 +170,19 @@ export function PhysicalStage({ step }: { step: number }) {
           x={womanX}
           y={FLOOR_Y + riseY}
           scale={CHAR_SCALE}
-          slow={step === S.OUTCOME}
+          slow={outcome}
           opacity={womanOp}
-          grayscale={step === S.OUTCOME}
+          grayscale={outcome}
           delay={step === S.ARRIVE ? 0.2 : step === S.OUTCOME ? 0.8 : 0}
           fadeDelay={walking ? 0.6 : step === S.OUTCOME ? 0.8 : 0}
         >
           <g transform={`translate(${-CHARACTER_FEET.x} ${-CHARACTER_FEET.y})`}>
-            <Character who="female" tear={inSteps(step, [S.DOORS, S.OUTCOME])} />
+            <Character who="female" tear={inSteps(step, [S.DOORS, S.OUTCOME, S.WHY])} />
             <ChestPain show={intro} />
           </g>
         </Actor>
         {/* a plain white cloth rises from her feet and covers her up to the head */}
-        <g className={step === S.OUTCOME ? styles.cloth : undefined} style={{ opacity: step === S.OUTCOME ? 1 : 0 }}>
+        <g className={outcome ? styles.cloth : undefined} style={{ opacity: outcome ? 1 : 0 }}>
           <rect x={WOMAN_X[S.OUTCOME] - 172} y={222} width={344} height={FLOOR_Y + 8 - 222} rx={6} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
           <g stroke="var(--gray-200)" strokeWidth={3} strokeLinecap="round">
             <line x1={WOMAN_X[S.OUTCOME] - 70} x2={WOMAN_X[S.OUTCOME] - 76} y1={250} y2={720} />
@@ -184,13 +193,13 @@ export function PhysicalStage({ step }: { step: number }) {
           x={manX}
           y={FLOOR_Y + riseY}
           scale={CHAR_SCALE}
-          slow={step === S.OUTCOME}
+          slow={outcome}
           delay={step === S.OUTCOME ? 0.2 : 0}
           opacity={manVisible ? 1 : 0}
           fadeDelay={walking ? 0.6 : step === S.OUTCOME ? 0.2 : 0}
         >
           <g transform={`translate(${-CHARACTER_FEET.x} ${-CHARACTER_FEET.y})`}>
-            <Character who="male" smile={step === S.OUTCOME} />
+            <Character who="male" smile={outcome} />
             <ChestPain show={intro} />
           </g>
         </Actor>
@@ -215,7 +224,7 @@ export function PhysicalStage({ step }: { step: number }) {
           <StickerTube value={TROPONIN.woman} color={WOMEN} showContent={step !== S.ARRIVE} animate={step === S.TUBE} strokePx={SW * unitPx} />
         </Actor>
         {/* the 40 ng/L cutoff across both stickers */}
-        <g style={fade(inSteps(step, [S.CUTOFF, S.WHY]), 0.3)}>
+        <g style={fade(inSteps(step, [S.CUTOFF]), 0.3)}>
           <line x1={330} x2={1270} y1={CUTOFF_LINE_Y} y2={CUTOFF_LINE_Y} stroke="var(--ink)" strokeWidth={SW} strokeDasharray="10 6" />
           <rect x={CX - 78} y={CUTOFF_LINE_Y - 16} width={156} height={32} rx={16} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
           <text x={CX} y={CUTOFF_LINE_Y + 6} fontSize={17} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
@@ -238,9 +247,6 @@ export function PhysicalStage({ step }: { step: number }) {
           <Badge x={TUBE_BIG.manX} y={70} text="ABOVE 40 · HIGH RISK" solid width={200} />
           <Badge x={TUBE_BIG.womanX} y={70} text="BELOW 40" width={200} />
         </g>
-        <g style={fade(step === S.WHY, 0.4)}>
-          <QuestionMark x={CX} y={530} size={190} />
-        </g>
 
         {/* lab cards over the characters (rewind scene) */}
         <Actor x={womanX} y={CARD_Y} opacity={showCards ? 1 : 0}>
@@ -250,68 +256,96 @@ export function PhysicalStage({ step }: { step: number }) {
           <LabCard value={TROPONIN.man} badge={{ text: `FLAGGED · ABOVE ${THRESHOLD.men}`, solid: true }} />
         </Actor>
 
-        {/* ---------- steps 7 / 11: troponin meters and the single threshold ---------- */}
-        <g style={fade(showMeters)}>
-          <g transform="translate(0 -40)">
-            {/* beat 1: cracked heart leaking into the blood */}
-            <g className={step === S.METERS ? styles.beat1 : undefined} style={{ opacity: step === S.METERS ? undefined : 0 }}>
-              <g transform="translate(340 240)">
+        {/* ---------- step 6: heart → vessel → test tube, with the 40 ng/L cutoff (graphic on the right) ---------- */}
+        <g transform={`translate(${narrow ? -440 : 0} 0)`}>
+          {/* vessel from the heart into the tube */}
+          <g className={on6 ? styles.beat2 : undefined} style={{ opacity: on6 ? undefined : 0 }}>
+            <path d={VESSEL} fill="none" stroke="var(--ink)" strokeWidth={38} strokeLinejoin="round" />
+            <path d={VESSEL} fill="none" stroke="#f7d9d9" strokeWidth={34} strokeLinejoin="round" />
+          </g>
+          {/* cracked heart leaking troponin */}
+          <g className={on6 ? styles.beat1 : undefined} style={{ opacity: on6 ? undefined : 0 }}>
+            <g className={on6 ? styles.shake : undefined}>
+              <g transform="translate(1010 250)">
                 <Heart size={190} fill="#c4161c" />
-                <path d="M-5 -65 L14 -30 L-9 -4 L12 26" fill="none" stroke="var(--ink)" strokeWidth={SW} strokeLinejoin="round" />
-              </g>
-              <rect x={220} y={385} width={240} height={40} rx={20} fill="#f7d9d9" stroke="var(--ink)" strokeWidth={SW} />
-              {[292, 322, 352, 382].map((x, i) => (
-                <circle
-                  key={x}
-                  cx={x}
-                  cy={345}
-                  r={6}
-                  fill="var(--ink)"
-                  className={step === S.METERS ? styles.leak : undefined}
-                  style={{ animationDelay: `${i * 0.5}s` }}
+                <path
+                  d="M-5 -65 L14 -30 L-9 -4 L12 26"
+                  pathLength={100}
+                  fill="none"
+                  stroke="var(--ink)"
+                  strokeWidth={SW}
+                  strokeLinejoin="round"
+                  className={on6 ? styles.crack : undefined}
                 />
-              ))}
-              <text x={340} y={455} fontSize={16} textAnchor="middle" fill="var(--text-soft)" style={sans}>
-                troponin leaks into the blood
-              </text>
-            </g>
-
-            {/* beat 2: level bar */}
-            <g className={step === S.METERS ? styles.beat2 : undefined} style={{ opacity: step === S.METERS ? undefined : 0 }}>
-              <path d="M590 130l12 18h-24z" fill="var(--ink)" />
-              <rect x={567} y={158} width={46} height={262} rx={8} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
-              <rect x={567} y={250} width={46} height={170} rx={8} fill="var(--gray-600)" className={step === S.METERS ? styles.rise : undefined} />
-              <text x={590} y={455} fontSize={16} textAnchor="middle" fill="var(--text-soft)" style={sans}>
-                higher = more damage
-              </text>
-            </g>
-
-            {/* beat 3: one line for everyone */}
-            <g className={step === S.METERS ? styles.beat3 : undefined}>
-              <g transform="translate(900 440)">
-                <Meter value={TROPONIN.man} color={MEN} label="Man" />
               </g>
-              <g transform="translate(1150 440)">
-                <Meter value={TROPONIN.woman} color={WOMEN} label="Woman" />
-              </g>
-              <line
-                x1={800}
-                x2={1250}
-                y1={440 - THRESHOLD.single * METER_K}
-                y2={440 - THRESHOLD.single * METER_K}
-                stroke="var(--ink)"
-                strokeWidth={SW}
-                strokeDasharray="10 6"
-              />
-              <text x={800} y={440 - THRESHOLD.single * METER_K - 10} fontSize={18} fontWeight={700} fill="var(--ink)" style={sans}>
-                {THRESHOLD.single} ng/L
-              </text>
-              <Badge x={900} y={165} text="FLAGGED" solid />
-              <Badge x={1150} y={165} text={step === S.RECAP ? "NORMAL?" : "NORMAL"} />
             </g>
-            <g style={fade(step === S.RECAP, 0.4)}>
-              <QuestionMark x={1150} y={135} size={90} />
+            <text x={1010} y={385} fontSize={16} textAnchor="middle" fill="var(--text-soft)" style={sans}>
+              troponin leaks into the blood
+            </text>
+          </g>
+          {/* troponin particles flowing through the vessel */}
+          <g style={{ opacity: on6 ? 1 : 0 }}>
+            {[0, 0.8, 1.6, 2.4].map((d) => (
+              <circle key={d} r={6} fill="var(--ink)" className={on6 ? styles.flow : undefined} style={{ animationDelay: `${1.7 + d}s` }} />
+            ))}
+          </g>
+          {/* the blood test tube with its sticker (neutral level, no patient value) */}
+          <g className={on6 ? styles.beat3 : undefined} style={{ opacity: on6 ? undefined : 0 }}>
+            <g transform={`translate(${TUBE6.x} ${TUBE6.y}) scale(${TUBE6.k})`}>
+              <StickerTube value={50} color="var(--gray-600)" showContent animate={on6} strokePx={SW * unitPx} hideValue delay={3.4} />
             </g>
+            <text x={TUBE6.x} y={TUBE6.y + 148 * TUBE6.k + 30} fontSize={16} textAnchor="middle" fill="var(--text-soft)" style={sans}>
+              blood test
+            </text>
+          </g>
+          {/* higher = more damage */}
+          <g className={on6 ? styles.beat4 : undefined} style={{ opacity: on6 ? undefined : 0 }}>
+            <line x1={1385} x2={1385} y1={TUBE6.barBottom} y2={TUBE6.barTop + 8} stroke="var(--ink)" strokeWidth={SW} />
+            <path d={`M1385 ${TUBE6.barTop - 4} l-9 16 h18 z`} fill="var(--ink)" />
+            <text x={1405} y={TUBE6.barTop + 50} fontSize={18} fill="var(--ink)" style={sans}>
+              higher =
+            </text>
+            <text x={1405} y={TUBE6.barTop + 74} fontSize={18} fontWeight={700} fill="var(--ink)" style={sans}>
+              more damage
+            </text>
+          </g>
+          {/* one cutoff for everyone */}
+          <g className={on6 ? styles.beat5 : undefined} style={{ opacity: on6 ? undefined : 0 }}>
+            <line x1={1130} x2={1365} y1={TUBE6.cutY} y2={TUBE6.cutY} stroke="var(--ink)" strokeWidth={SW} strokeDasharray="10 6" />
+            <rect x={1130 - 78} y={TUBE6.cutY - 16} width={156} height={32} rx={16} fill="#fff" stroke="var(--ink)" strokeWidth={SW} />
+            <text x={1130} y={TUBE6.cutY + 6} fontSize={17} fontWeight={700} textAnchor="middle" fill="var(--ink)" style={sans}>
+              {THRESHOLD.single} ng/L cutoff
+            </text>
+            <text x={1130} y={TUBE6.cutY + 40} fontSize={16} textAnchor="middle" fill="var(--text-soft)" style={sans}>
+              the same line for everyone
+            </text>
+          </g>
+        </g>
+
+        {/* ---------- step 10: the single threshold, does it fit everyone? ---------- */}
+        <g style={fade(step === S.RECAP)}>
+          <g transform="translate(0 -40)">
+            <g transform="translate(900 440)">
+              <Meter value={TROPONIN.man} color={MEN} label="Man" />
+            </g>
+            <g transform="translate(1150 440)">
+              <Meter value={TROPONIN.woman} color={WOMEN} label="Woman" />
+            </g>
+            <line
+              x1={800}
+              x2={1250}
+              y1={440 - THRESHOLD.single * METER_K}
+              y2={440 - THRESHOLD.single * METER_K}
+              stroke="var(--ink)"
+              strokeWidth={SW}
+              strokeDasharray="10 6"
+            />
+            <text x={800} y={440 - THRESHOLD.single * METER_K - 10} fontSize={18} fontWeight={700} fill="var(--ink)" style={sans}>
+              {THRESHOLD.single} ng/L
+            </text>
+            <Badge x={900} y={165} text="FLAGGED" solid />
+            <Badge x={1150} y={165} text="NORMAL?" />
+            <QuestionMark x={1150} y={135} size={90} />
           </g>
         </g>
 

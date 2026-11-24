@@ -14,6 +14,25 @@
   width: min(900px, 100%);
 }
 
+/* Text on the left, graphic on the right (desktop only; phones keep the card at the bottom). */
+.stepLeft.stepLeft {
+  justify-content: flex-start;
+  align-items: center;
+  padding-bottom: 0;
+}
+.cardLeft {
+  width: min(810px, 100%);
+}
+@media (max-width: 700px) {
+  .stepLeft.stepLeft {
+    align-items: flex-end;
+    padding-bottom: 68px;
+  }
+  .cardLeft {
+    width: 100%;
+  }
+}
+
 /* First screen: the card rises in after the characters have arrived. */
 .introCard {
   animation: cardIn 0.9s 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
@@ -42,15 +61,19 @@
   transition: fill 0.8s ease;
 }
 
-/* Beats of the troponin explanation (step 5). Delays make three quick beats. */
+/* Beats of the troponin explanation (step 6): heart, vessel, test tube, arrow, cutoff. */
 .beat1,
 .beat2,
-.beat3 {
+.beat3,
+.beat4,
+.beat5 {
   animation: fadeIn 0.7s ease both;
 }
 .beat1 { animation-delay: 0s; }
-.beat2 { animation-delay: 1.4s; }
+.beat2 { animation-delay: 1.5s; }
 .beat3 { animation-delay: 2.8s; }
+.beat4 { animation-delay: 5.2s; }
+.beat5 { animation-delay: 6.2s; }
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -70,6 +93,39 @@
   0%   { transform: translateY(0); opacity: 0; }
   15%  { opacity: 1; }
   100% { transform: translateY(70px); opacity: 0; }
+}
+
+/* Troponin dots travelling from the heart through the vessel into the test tube. */
+.flow {
+  offset-path: path("M 1010 250 H 1260 Q 1290 250 1290 280 V 345");
+  offset-rotate: 0deg;
+  animation: flow 3.2s linear infinite backwards;
+}
+
+/* The heart cracks (line draws in), then shakes as troponin is released. */
+.crack {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 0.6s 0.7s ease-out forwards;
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+.shake {
+  animation: shake 0.5s 1.2s ease-in-out both;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  45% { transform: translateX(4px); }
+  70% { transform: translateX(-2px); }
+}
+
+@keyframes flow {
+  0%   { offset-distance: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
 }
 
 .rise {
@@ -108,8 +164,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .beat1, .beat2, .beat3, .late, .leak, .rise, .grow, .cloth, .pulse, .introCard {
+  .beat1, .beat2, .beat3, .beat4, .beat5, .late, .flow, .shake, .leak, .rise, .grow, .cloth, .pulse, .introCard {
     animation: none;
+  }
+  .crack {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
   }
   .actor, .person {
     transition: none;
